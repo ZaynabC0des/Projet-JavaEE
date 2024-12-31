@@ -1,0 +1,197 @@
+/* Style existant pour l'en-tête, les boutons et la table */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background-color: #000;
+    padding: 10px;
+}
+
+.title-container {
+    flex-grow: 1;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    color:  rgb(0, 255, 255);
+    font-family: 'Press Start 2P', monospace;
+}
+
+.logout-button {
+    padding: 5px 20px;
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    background-color: #333;
+    color: #fff;
+    border: none;
+}
+
+.logout-button:hover {
+    background-color:  rgb(0, 255, 255);
+    color: #000;
+}
+
+body {
+    background-color: #000;
+    color:  rgb(0, 255, 255);
+    font-family: 'Press Start 2P', monospace;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+table {
+    border-collapse: collapse;
+    width: 40%; /* Ajustez selon le besoin */
+    max-height: 500px; /* Hauteur maximale avant de scroller */
+    overflow: auto; /* Ajoute le scroll si le contenu dépasse la hauteur maximale */
+}
+
+th, td {
+    border: 1px solid rgb(0, 255, 255);
+    padding: 2px; /* Réduisez le padding pour gagner de la place */
+    text-align: center;
+}
+
+img {
+    width: 20px; /* Réduisez la taille des images pour qu'elles prennent moins de place */
+    height: 20px;
+}
+
+
+/* Ajout de CSS pour le bouton deconnexion */
+
+.modal {
+    display: none; /* Caché par défaut */
+    position: fixed; /* Fixé à l'écran */
+    z-index: 1; /* Au-dessus des autres éléments */
+    left: 0;
+    top: 0;
+    width: 100%; /* Largeur de la vue */
+    height: 100%; /* Hauteur de la vue */
+    overflow: auto; /* Permettre le défilement si nécessaire */
+    background-color: rgba(0,0,0,0.4); /* Fond noir semi-transparent */
+}
+
+.modal-content {
+    position: relative;
+    background-color: #222; /* Fond noir légèrement plus clair */
+    color: #fff; /* Texte blanc pour le contraste */
+    margin: 15% auto; /* Centré verticalement et horizontalement */
+    padding: 20px;
+    border-radius: 20px; /* Coins arrondis pour la pop-up */
+    width: 80%; /* Largeur ajustée */
+    box-shadow: 
+        0 0 10px rgb(0, 255, 255), /* Première couche néon */
+        0 0 20px rgb(0, 255, 255), /* Seconde couche plus grande */
+        0 0 30px rgb(0, 255, 255), /* Troisième couche encore plus grande */
+        0 0 40px rgb(0, 255, 255); /* Dernière couche pour intensité */
+    text-align: center; /* Centrer le contenu textuel */
+}
+
+.close {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #f44336;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.confirm-button, .cancel-button {
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    border: none;
+    font-size: 16px;
+    border-radius: 10px;
+    display: inline-block; 
+}
+
+.confirm-button {
+    background-color: #4CAF50; /* Vert */
+    color: white;
+}
+
+.cancel-button {
+    background-color: #f44336; /* Rouge */
+    color: white;
+}
+
+/* Conteneur des boutons de direction */
+.movement-controls {
+    display: flex;
+    flex-direction: row; /* Changer à 'row' pour aligner horizontalement */
+    justify-content: center; /* Centrer les boutons horizontalement */
+    align-items: center; /* Aligner les éléments au centre verticalement */
+    gap: 10px; /* Espacement entre les boutons */
+    margin-bottom: 30px; /* Espace entre les boutons et la map */
+    margin-top: 20px;
+}
+
+
+/* Boutons de direction */
+.movement-controls button {
+    padding: 10px 20px; /* Taille des boutons */
+    font-family: 'PixelGame', 'Press Start 2P', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    color: #fff; /* Texte blanc */
+    background-color: #333; /* Fond sombre */
+    border: 2px solid #fff; /* Bordure blanche */
+    border-radius: 10px; /* Coins arrondis */
+    transition: all 0.3s ease-in-out; /* Transition fluide pour les interactions */
+}
+
+/* Effet au survol */
+.movement-controls button:hover {
+    background-color: rgb(0, 255, 255); /* Fond cyan au survol */
+    color: #000; /* Texte noir */
+    box-shadow: 0 0 10px rgb(0, 255, 255), 0 0 20px rgb(0, 255, 255); /* Effet néon au survol */
+}
+
+/* Effet lors du clic */
+.movement-controls button:active {
+    background-color: #555; /* Fond gris plus foncé */
+    box-shadow: inset 0 0 5px rgb(0, 255, 255); /* Effet enfoncé */
+}
+
+.combat-container {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 400px;
+    background-color: rgba(0,255,255, 0.1);
+    color: rgb(0, 255, 255);
+    font-family: 'Press Start 2P', monospace;
+    padding: 20px;
+    border: 2px solid rgb(0, 255, 255);
+/*    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+*/  box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.7);
+    overflow-y: auto;
+    max-height: 80%;
+}
+
+.warning {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    margin: 10px auto;
+    width: 80%;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 5px;
+}
