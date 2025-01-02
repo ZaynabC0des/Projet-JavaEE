@@ -66,6 +66,14 @@ if (request.getParameter("attaquer") != null && combat.estCibleEnVie()) {
                 <% session.removeAttribute("errorMessage"); %>  // Nettoie l'erreur après l'affichage
             <% } %>
         }
+
+ window.onload = function() {
+            // Vérifier si le popup doit être affiché
+            <% if (Boolean.TRUE.equals(session.getAttribute("showPopup"))) { %>
+                alert('Mouvement bloqué : la montagne en position  n\'est pas franchissable.');
+                <% session.removeAttribute("showPopup"); // Supprime l'attribut après affichage %>
+            <% } %>
+        }
     </script>
 
 <head>
