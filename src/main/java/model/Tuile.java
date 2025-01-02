@@ -1,19 +1,15 @@
 package model;
 
-
-
 public class Tuile {
 
     private int x;
     private int y;
     private TuileType type;
 
-
     public Tuile(int x, int y, TuileType type) {
         this.x = x;
         this.y = y;
         this.type = type;
-
     }
     
     // Getters et setters
@@ -33,16 +29,13 @@ public class Tuile {
         this.type = type;
     }
 
-
-    protected static Tuile createTuile(int x, int y, TuileType tType, int idJoueur, int pointsDeVie) {
+    protected static Tuile createTuile(int x, int y, TuileType tType, String login, int pointsDeVie) {
         return switch (tType) {
             case VILLE -> new Ville(x, y);
             case FORET -> new Foret(x, y);
             case MONTAGNE -> new Montagne(x, y);
-            case SOLDAT -> new Soldat(x, y, idJoueur, pointsDeVie);
+            case SOLDAT -> new Soldat(x, y, login, pointsDeVie);  // Notez que 'idJoueur' est maintenant 'login' et c'est un String
             default -> new Tuile(x, y, tType);
         };
     }
-
-
 }

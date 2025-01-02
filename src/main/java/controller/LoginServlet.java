@@ -5,8 +5,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.ForetBDD;
 import model.User;
 import model.UserBDD;
+import model.VilleBDD;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,6 +18,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -25,11 +28,15 @@ public class LoginServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
         response.getWriter().append("Served at: ").append(request.getContextPath());
     }
+    
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
         HttpSession session = request.getSession();
         String login = request.getParameter("login");
         String password = request.getParameter("password");
@@ -39,29 +46,54 @@ public class LoginServlet extends HttpServlet {
         try {
             User foundUser = utable.findUser(u1);
             if (foundUser != null) {
+                // Stocke l'objet User et son login dans la session
                 session.setAttribute("user", foundUser);
-                System.out.println("Utilisateur trouv� : " + foundUser.getLogin());
+                session.setAttribute("userLogin", foundUser.getLogin());
 
-                // Chemin vers le fichier CSV de l'utilisateur
-                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
+                System.out.println("Utilisateur trouv� : " + foundUser.getLogin());
+                // Récupérer les données supplémentaires de l'utilisateur
+                User userDetails = utable.getUserDetails(foundUser.getLogin());
+                if (userDetails != null) {
+                    session.setAttribute("productionPoints", userDetails.getPointProduction());
+                }
+
+                // Chemin vers le dossier et le fichier CSV de l'utilisateur
+                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 String userFilePath = Paths.get(userDir, login + ".csv").toString();
 
                 if (new File(userFilePath).exists()) {
                     session.setAttribute("userFilePath", userFilePath);
 
-                    // Initialiser la grille
                     try {
+                        // 1) Initialiser la grille
                         int[][] grille = initializeGrid(userFilePath);
                         session.setAttribute("grille", grille);
-                       // System.out.println("Grille initialis�e avec succ�s.");
+
+                        // 2) Initialiser les villes dans la base de donn�es
+                        VilleBDD villeBDD = new VilleBDD();
+                        villeBDD.initializeCities(userFilePath);
+
+                     // Initialiser les for�ts dans la base de donn�es
+                        ForetBDD foretBDD = new ForetBDD();
+                        foretBDD.initializeTree(userFilePath);
+                        
+                        // Rediriger vers la page de lecture de la carte
                         response.sendRedirect("lecture_carte.jsp");
                         
                     } catch (IOException e) {
-                    	System.out.println("Erreur lors de l'initialisation de la grille : " + e.getMessage());
-                        request.setAttribute("error", "Erreur lors de l'initialisation de la carte : " + e.getMessage());
+                        System.out.println("Erreur lors de l'initialisation de la grille : " + e.getMessage());
+                        request.setAttribute("error", 
+                            "Erreur lors de l'initialisation de la carte : " + e.getMessage());
+                        request.getRequestDispatcher("connexion.jsp").forward(request, response);
+                    } catch (SQLException e) {
+                        System.out.println("Erreur lors de l'initialisation des villes dans la BDD : " 
+                            + e.getMessage());
+                        request.setAttribute("error", 
+                            "Erreur lors de l'initialisation des villes dans la BDD : " + e.getMessage());
                         request.getRequestDispatcher("connexion.jsp").forward(request, response);
                     }
+
                 } else {
                     request.setAttribute("error", "Fichier CSV non trouv�.");
                     request.getRequestDispatcher("connexion.jsp").forward(request, response);
@@ -83,7 +115,6 @@ public class LoginServlet extends HttpServlet {
 
     /**
      * M�thode pour lire le fichier CSV et initialiser la grille.
-     * 
      * @param filePath Chemin vers le fichier CSV
      * @return Grille sous forme de tableau 2D d'entiers
      * @throws IOException En cas d'erreur de lecture du fichier
@@ -101,7 +132,6 @@ public class LoginServlet extends HttpServlet {
                 tempGrid.add(row);
             }
         }
-
         // Convertir la liste temporaire en tableau 2D
         return tempGrid.toArray(new int[tempGrid.size()][]);
     }

@@ -11,6 +11,7 @@
 
 <h2>Connexion</h2>
 
+
 <!-- Afficher le message d'erreur si présent -->
 <% if (request.getAttribute("error") != null) { %>
 <div style="color:red; font-size:16px;">
@@ -40,7 +41,7 @@
       </label>
     </div>
 
-    <div class="container" style="background-color:#222">
+    <div class="container" style="background-color:#f1f1f1">
       <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
       <span class="psw">Forgot <a href="#">password?</a></span>
     </div>
@@ -86,13 +87,24 @@ window.onclick = function(event) {
       </label>
     </div>
 
-    <div class="container" style="background-color:#222">
+    <div class="container" style="background-color:#f1f1f1">
       <button type="button" onclick="document.getElementById('id02').style.display='none'" class="cancelbtn">Cancel</button>
       <span class="psw">Forgot <a href="#">password?</a></span>
     </div>
   </form>
 </div>
 
+<script>
+// Get the modal
+var modal = document.getElementById('id02');
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
 
 </body>
 </html>

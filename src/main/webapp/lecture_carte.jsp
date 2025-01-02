@@ -45,9 +45,7 @@ if (request.getParameter("attaquer") != null && combat.estCibleEnVie()) {
     String forestPos = (String) session.getAttribute("forestPosition");
 %>
 <script>
-
-
-    if (confirm("Détruire la forêt en position <%= forestPos %> ?")) {
+	if (confirm("Détruire la forêt en position <%= forestPos %> ?")) {
         window.location.href = "UpdatePositionServlet?action=destroyForest&position=<%= forestPos %>";
     } else {
         // Si l'utilisateur clique sur "Annuler", on met à jour sa position sans détruire la forêt
@@ -59,29 +57,6 @@ if (request.getParameter("attaquer") != null && combat.estCibleEnVie()) {
 }
 %>
 <html>
-
-
-<%
-    List<Soldat> soldats = (List<Soldat>) session.getAttribute("soldats");
-    if (soldats != null) {
-        for (Soldat soldat : soldats) {
-            //out.println("Soldat ID : " + soldat.getIdSoldat() + ", Points de vie : " + soldat.getPointDeVie() + "<br>");
-        }
-    }
-%>
-
-
-<% 
-String warningMessage = (String) session.getAttribute("warningMessage");
-if (warningMessage != null) {
-%>
-<div class="warning">
-    <p><%= warningMessage %></p>
-</div>
-<%
-    session.removeAttribute("warningMessage"); // Supprime le message après l'affichage
-}
-%>
 
 
 <script>
@@ -137,52 +112,69 @@ if (userFilePath == null) {
             playerX = Integer.parseInt(positionParts[0]);
             playerY = Integer.parseInt(positionParts[1]);
         }
-        
         try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
             String line;
-            int rowNum = 0; // Ajoutez un compteur pour les lignes
+            int rowNum = 0; // Compteur pour les lignes
             while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                out.println("<tr>");
-                for (int colNum = 0; colNum < values.length; colNum++) {
-                    String value = values[colNum].trim();
-                    int code = Integer.parseInt(value);
-                    TuileType tuileType = TuileType.fromCode(code);
-                    String imagePath = "";
-                    switch (tuileType) {
-                        case VIDE:
-                            imagePath = "images/tuiles/vide.png";
-                            break;
-                        case VILLE:
-                            imagePath = "images/tuiles/ville.png";
-                            break;
-                        case FORET:
-                            imagePath = "images/tuiles/foret.png";
-                            break;
-                        case MONTAGNE:
-                            imagePath = "images/tuiles/montagne.png";
-                            break;
-                        case SOLDAT: 
-                            imagePath = "images/tuiles/soldat.png";
-                            break;
-                        default:
-                            imagePath = "";
+                try {
+                    String[] values = line.split(",");
+                    out.println("<tr>");
+                    for (int colNum = 0; colNum < values.length; colNum++) {
+                        String value = values[colNum].trim();
+                        try {
+                            if (value.isEmpty() || !value.matches("\\d+")) {
+                                throw new NumberFormatException("Valeur invalide : '" + value + "'");
+                            }
+                            int code = Integer.parseInt(value);
+                            TuileType tuileType = TuileType.fromCode(code);
+                            String imagePath = "";
+
+                            // Déterminez l'image en fonction du type de tuile
+                            switch (tuileType) {
+                                case VIDE:
+                                    imagePath = "images/tuiles/vide.png";
+                                    break;
+                                case VILLE:
+                                    imagePath = "images/tuiles/ville.png";
+                                    break;
+                                case FORET:
+                                    imagePath = "images/tuiles/foret.png";
+                                    break;
+                                case MONTAGNE:
+                                    imagePath = "images/tuiles/montagne.png";
+                                    break;
+                                case SOLDAT:
+                                    imagePath = "images/tuiles/soldat.png";
+                                    break;
+                                default:
+                                    imagePath = "";
+                            }
+
+                            // Ajoutez la cellule au tableau
+                            if (rowNum == playerX && colNum == playerY) {
+                                out.println("<td>J1</td>");
+                            } else if (code == 4) { // Code pour le soldat "S1"
+                                out.println("<td>S1</td>");
+                            } else {
+                                out.println("<td><img src='" + request.getContextPath() + "/" + imagePath + "' style='width:50px; height:50px;'></td>");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.err.println("Erreur dans la cellule (" + rowNum + ", " + colNum + "): " + e.getMessage());
+                            out.println("<td style='color:red;'>Erreur</td>");
+                        }
                     }
-                    if (rowNum == playerX && colNum == playerY) {
-                        out.println("<td>J1</td>");
-                    } else if (code == 4) { // Code pour le soldat "S1"
-                        out.println("<td>S1</td>");
-                    } else {
-                        out.println("<td><img src='" + request.getContextPath() + "/" + imagePath + "' style='width:50px; height:50px;'></td>");
-                    }
+                    out.println("</tr>");
+                } catch (Exception e) {
+                    System.err.println("Erreur dans la ligne " + rowNum + ": " + e.getMessage());
+                    out.println("<tr><td colspan='100' style='color:red;'>Erreur dans cette ligne</td></tr>");
                 }
-                out.println("</tr>");
                 rowNum++;
             }
         } catch (IOException e) {
             out.println("</table>");
-            out.println("<p>Erreur lors du chargement du fichier CSV : " + e.getMessage() + "</p>");
+            out.println("<p style='color:red;'>Erreur lors du chargement du fichier CSV : " + e.getMessage() + "</p>");
         }
+
 
         } %>
 </table>
@@ -231,15 +223,40 @@ if (userFilePath == null) {
                 int remainingDefense = combat.getPointsDefenseCible(); // Points restants
                 int percentage = (int) ((double) remainingDefense / totalDefense * 100); // Calculer le pourcentage
             %>
+            <p>Remaining defense pts: <%= remainingDefense %></p>
 
             <div class="progress-bar">
                 <div class="progress-bar-inner" style="width: <%= percentage %>%;"></div>
             </div>
-            <p>Remaining defense pts: <%= remainingDefense %></p>
            <% } %>
            <% } %>
          <% } %>
-          
+                   <!-- Bouton View Profile -->
+		<button id="viewProfileButton" class="view-profile-button">View Profile</button>
+            <!-- Profil Joueur -->
+	   <div class="player-profile" id="playerProfile">
+	       <h2>Your Profile</h2>
+	       <p>Pseudo: <%= session.getAttribute("userLogin") %></p>
+	       <p>Production points: <%= session.getAttribute("productionPoints") %></p>
+	       <p>Nb of Soldiers: <%= session.getAttribute("nombreSoldats") %></p>
+	       <p>Nb of Cities: <%= session.getAttribute("nombreVilles") %></p>
+	       
+	       
+	   </div>
+	
+	   <!-- Script JavaScript directement intégré -->
+	  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const viewProfileButton = document.getElementById("viewProfileButton");
+        const playerProfile = document.getElementById("playerProfile");
+
+        viewProfileButton.addEventListener("click", function () {
+            // Ajoute ou supprime la classe 'show' pour afficher/cacher le profil
+            playerProfile.classList.toggle("show");
+        });
+        
+    });
+</script>
            
         </div>
     </div>

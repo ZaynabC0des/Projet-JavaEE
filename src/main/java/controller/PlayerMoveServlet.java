@@ -6,8 +6,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.UserBDD;
+import model.VilleBDD;
 
 import java.io.IOException;
+import java.sql.SQLException;
 @WebServlet("/PlayerMoveServlet")
 public class PlayerMoveServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -16,72 +19,107 @@ public class PlayerMoveServlet extends HttpServlet {
 protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	
     HttpSession session = request.getSession();//toujours co a la session
-int[][] grille = (int[][]) session.getAttribute("grille");//recupere la grille
-
-if (grille == null) { //les erreurs possible d initialisation
-    System.out.println("Erreur : la grille n'est pas initialisée.");
-    response.getWriter().println("Erreur : la grille n'est pas initialisée.");
-    return;
-}
-
-//position du joueur 
-String pos = (String) session.getAttribute("playerPosition");
-if (pos == null) {
-    pos = "0,0";
-    session.setAttribute("playerPosition", pos);
-}
-
-//pour obtenir les coordonnées 
-String[] parts = pos.split(",");
-int x = Integer.parseInt(parts[0]);
-int y = Integer.parseInt(parts[1]);
-System.out.println("Position actuelle : (" + x + ", " + y + ")");
-
-//new position en fonction de la direction
-String direction = request.getParameter("direction");
-int newX = x;
-int newY = y;
-
-switch (direction) {
-    case "up":
-        if (x > 0) newX--;
-        break;
-    case "down":
-        if (x < grille.length - 1) newX++;
-        break;
-    case "left":
-        if (y > 0) newY--;
-        break;
-    case "right":
-        if (y < grille[0].length - 1) newY++;
-        break;
-    default:
-        System.out.println("Direction invalide : " + direction);
-        break;
-}
-
-if (grille[newX][newY] == 3) {
-	session.setAttribute("showPopup", true); 
-    System.out.println("Mouvement bloqué : la montagne en position (" + newX + ", " + newY + ") n'est pas franchissable.");
-    response.sendRedirect("lecture_carte.jsp"); // Redirige vers la même page sans changer la position
+    String userLogin = (String) session.getAttribute("userLogin");
+    int[][] grille = (int[][]) session.getAttribute("grille");//recupere la grille
+	VilleBDD villeBDD = new VilleBDD();
+    UserBDD userBDD = new UserBDD();
     
-} else if (grille[newX][newY] == 2) { // Vérification si la case est une forêt
-    session.setAttribute("proposedPosition", newX + "," + newY);
-    session.setAttribute("askDestroyForest", true); // Demande de confirmation pour détruire la forêt
-    session.setAttribute("forestPosition", newX + "," + newY); // Sauvegarde de la position de la forêt
-    System.out.println("Arrivée sur une case forêt en position (" + newX + ", " + newY + ")");
-    response.sendRedirect("lecture_carte.jsp");
-} 
-
-else {
-    session.setAttribute("askDestroyForest", false); // Aucune forêt rencontrée
-    session.setAttribute("playerPosition", newX + "," + newY); // Mise à jour de la position
+	if (grille == null) { //les erreurs possible d initialisation
+	    System.out.println("Erreur : la grille n'est pas initialisï¿½e.");
+	    response.getWriter().println("Erreur : la grille n'est pas initialisï¿½e.");
+	    return;
+	}
+	
+	//position du joueur 
+	String pos = (String) session.getAttribute("playerPosition");
+	if (pos == null) {
+	    pos = "0,0";
+	    session.setAttribute("playerPosition", pos);
+	}
+	
+	//pour obtenir les coordonnï¿½es 
+	String[] parts = pos.split(",");
+	int x = Integer.parseInt(parts[0]);
+	int y = Integer.parseInt(parts[1]);
+	System.out.println("Position actuelle : (" + x + ", " + y + ")");
+	
+	//new position en fonction de la direction
+	String direction = request.getParameter("direction");
+	int newX = x;
+	int newY = y;
+	
+	switch (direction) {
+	    case "up":
+	        if (x > 0) newX--;
+	        break;
+	    case "down":
+	        if (x < grille.length - 1) newX++;
+	        break;
+	    case "left":
+	        if (y > 0) newY--;
+	        break;
+	    case "right":
+	        if (y < grille[0].length - 1) newY++;
+	        break;
+	    default:
+	        System.out.println("Direction invalide : " + direction);
+	        break;
+	}
+	
+	//les positions du csv 
+	 session.setAttribute("playerPosition", newX + "," + newY); //mise a jours du joueur pour la ville 
+	if (grille[newX][newY] == 3) {
+		session.setAttribute("showPopup", true); 
+	    System.out.println("Mouvement bloquï¿½ : la montagne en position (" + newX + ", " + newY + ") n'est pas franchissable.");
+	    response.sendRedirect("lecture_carte.jsp"); // Redirige vers la mï¿½me page sans changer la position   
+	}
+	else if (grille[newX][newY] == 2) { // Vï¿½rification si la case est une forï¿½t
+	    session.setAttribute("proposedPosition", newX + "," + newY);
+	    session.setAttribute("askDestroyForest", true); // Demande de confirmation pour dï¿½truire la forï¿½t
+	    session.setAttribute("forestPosition", newX + "," + newY); // Sauvegarde de la position de la forï¿½t
+	    System.out.println("Arrivï¿½e sur une case forï¿½t en position (" + newX + ", " + newY + ")");
+	    response.sendRedirect("lecture_carte.jsp");
+	} 
+	
+	else {
+	    session.setAttribute("askDestroyForest", false); // Aucune forï¿½t rencontrï¿½e
+	    session.setAttribute("playerPosition", newX + "," + newY); // Mise ï¿½ jour de la position
+	    
     if (grille[newX][newY] == 0) {
-        System.out.println("Position mise à jour : (" + newX + ", " + newY + ")");
-    } else {
-        System.out.println("Mouvement bloqué : la tuile (" + newX + ", " + newY + ") n'est pas accessible.");
+        System.out.println("Position mise ï¿½ jour : (" + newX + ", " + newY + ")");
     }
-    response.sendRedirect("lecture_carte.jsp");
+    
+    else {
+    	String owner = null;
+        session.setAttribute("playerPosition", newX + "," + newY); // Mise ï¿½ jour de la position
+        System.out.println("Position mise ï¿½ jour : (" + newX + ", " + newY + ")");
+
+        try {
+        	owner = villeBDD.getCityOwner(newX, newY);
+        	 
+              if (owner != null) {
+                  System.out.println("Cette ville appartient ï¿½ " + owner);
+              } else {
+                  System.out.println("Cette ville n'appartient ï¿½ personne.");
+              }
+              
+              
+            // Rï¿½cupï¿½rer le nombre de villes possï¿½dï¿½es et mettre ï¿½ jour les points de production
+            int villeCount = villeBDD.compterVillesPossedeesParUtilisateur(userLogin);
+            session.setAttribute("nombreVilles", villeCount);
+
+            if (villeCount > 0) {
+                int productionPointsToAdd = villeCount * 0; //modifier ï¿½ 5 plus tard
+                userBDD.updateProductionPoints(userLogin, productionPointsToAdd);
+                System.out.println("Ajoutï¿½ " + productionPointsToAdd + " points de production pour " + villeCount + " villes possï¿½dï¿½es par :" +userLogin);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Erreur SQL lors de la mise ï¿½ jour des points de production : " + e.getMessage());
+            response.getWriter().println("Erreur de base de donnï¿½es lors de la mise ï¿½ jour des points de production.");
         }
     }
+    response.sendRedirect("lecture_carte.jsp");
+}
+}
 }

@@ -10,9 +10,9 @@ public class Ville extends Tuile {
     public Ville(int x, int y) {
         super(x, y, TuileType.VILLE);
 
-        this.defensePoints = 10;
+        this.defensePoints = 100;
         this.owner = null;  // J'ai pas la classe joueur encore
-        this.productionPoints = 2;
+        this.productionPoints = 5;
     }
 
     // Getters et setters

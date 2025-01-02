@@ -21,13 +21,13 @@ public class SoldatBDD {
     }
 
     // Ajouter un soldat
-    public int ajouterSoldatEtRecupererId(int id_user, int pointDeVie) {
-        String sql = "INSERT INTO soldat (id_user, point_de_vie) VALUES (?, ?)";
+    public int ajouterSoldatEtRecupererId(String login, int pointDeVie) {
+        String sql = "INSERT INTO soldat (login_user, point_de_vie) VALUES (?, ?)";
         try (Connection cnx = initConnection();
              PreparedStatement stmt = cnx.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setInt(1, id_user); // ID de l'utilisateur
-            stmt.setInt(2, pointDeVie); // Points de vie
+            stmt.setString(1, login);
+            stmt.setInt(2, pointDeVie);
 
             int rowsInserted = stmt.executeUpdate();
             if (rowsInserted > 0) {
@@ -92,4 +92,21 @@ public class SoldatBDD {
             return false;
         }
     }
+    
+    public int compterSoldatsPossedesParUtilisateur(String userLogin) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM soldat WHERE login_user = ?";
+        try (Connection conn = initConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, userLogin);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+                return 0;  // Retourne 0 si aucun résultat n'est trouvé
+            }
+        }
+    }
+
+    
+    
 }

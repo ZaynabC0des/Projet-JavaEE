@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Objects;
 
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
@@ -62,7 +63,7 @@ public class RegisterServlet extends HttpServlet {
                 request.getSession().setAttribute("userFilePath", targetPath.toString());
 
                 // Redirect to another page after successful registration
-                response.sendRedirect("lecture_carte.jsp");
+                response.sendRedirect("connexion.jsp");
             } else {
                 request.setAttribute("error", "L'inscription a �chou�. Erreur lors de l'ajout de l'utilisateur.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);

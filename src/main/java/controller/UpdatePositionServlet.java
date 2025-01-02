@@ -72,8 +72,7 @@ public class UpdatePositionServlet extends HttpServlet {
     private void handleDestroyForest(HttpSession session, User user, String csvFilePath, int[][] grille, int x, int y) throws IOException, SQLException, ClassNotFoundException {
         // V�rifie si la case est bien une for�t
         if (grille[x][y] == 2) {
-            // Mise � jour de la grille
-            grille[x][y] = 0;
+            grille[x][y] = 0;     // Mise � jour de la grille
             session.setAttribute("grille", grille);
 
             // Mise � jour du fichier CSV
@@ -90,15 +89,14 @@ public class UpdatePositionServlet extends HttpServlet {
 
             // Mise � jour des points de production
             UserBDD userBDD = new UserBDD();
-            boolean success = userBDD.updateProductionPoints(user.getLogin(), 2);
-            if (success) {
-                System.out.println("Points de production ajout�s pour l'utilisateur " + user.getLogin());
+            if (userBDD.updateProductionPoints(user.getLogin(), 2)) {  // Ajoute 2 points
                 int updatedPoints = userBDD.getProductionPoints(user.getLogin());
                 session.setAttribute("productionPoints", updatedPoints);
+                System.out.println("2 points de production ajout�s pour destruction d'un arbre.");
             } else {
                 System.out.println("Erreur lors de l'ajout des points de production.");
             }
-
+            
             System.out.println("For�t d�truite en position (" + x + ", " + y + ").");
         } else {
             System.out.println("Erreur : La case (" + x + ", " + y + ") n'est pas une for�t.");
@@ -108,6 +106,7 @@ public class UpdatePositionServlet extends HttpServlet {
         session.setAttribute("playerPosition", x + "," + y);
     }
 
+ 
     private void handleMoveOnly(HttpSession session, int x, int y) {
         // Mise � jour uniquement de la position
         session.setAttribute("playerPosition", x + "," + y);
