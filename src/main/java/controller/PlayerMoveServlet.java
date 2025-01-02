@@ -19,8 +19,8 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 int[][] grille = (int[][]) session.getAttribute("grille");//recupere la grille
 
 if (grille == null) { //les erreurs possible d initialisation
-    System.out.println("Erreur : la grille n'est pas initialisée.");
-    response.getWriter().println("Erreur : la grille n'est pas initialisée.");
+    System.out.println("Erreur : la grille n'est pas initialisÃ©e.");
+    response.getWriter().println("Erreur : la grille n'est pas initialisÃ©e.");
     return;
 }
 
@@ -31,7 +31,7 @@ if (pos == null) {
     session.setAttribute("playerPosition", pos);
 }
 
-//pour obtenir les coordonnées 
+//pour obtenir les coordonnÃ©es 
 String[] parts = pos.split(",");
 int x = Integer.parseInt(parts[0]);
 int y = Integer.parseInt(parts[1]);
@@ -60,26 +60,29 @@ switch (direction) {
         break;
 }
 
+
+	//les positions du csv 
+ session.setAttribute("playerPosition", newX + "," + newY); //mise a jours du joueur pour la ville 
 if (grille[newX][newY] == 3) {
 	session.setAttribute("showPopup", true); 
-    System.out.println("Mouvement bloqué : la montagne en position (" + newX + ", " + newY + ") n'est pas franchissable.");
-    response.sendRedirect("lecture_carte.jsp"); // Redirige vers la même page sans changer la position
-    
-} else if (grille[newX][newY] == 2) { // Vérification si la case est une forêt
+    System.out.println("Mouvement bloquÃ© : la montagne en position (" + newX + ", " + newY + ") n'est pas franchissable.");
+    response.sendRedirect("lecture_carte.jsp"); // Redirige vers la mÃ¯Â¿Â½me page sans changer la position   
+} 
+else if (grille[newX][newY] == 2) { // VÃ©rification si la case est une forÃªt
     session.setAttribute("proposedPosition", newX + "," + newY);
-    session.setAttribute("askDestroyForest", true); // Demande de confirmation pour détruire la forêt
-    session.setAttribute("forestPosition", newX + "," + newY); // Sauvegarde de la position de la forêt
-    System.out.println("Arrivée sur une case forêt en position (" + newX + ", " + newY + ")");
+    session.setAttribute("askDestroyForest", true); // Demande de confirmation pour dÃ©truire la forÃªt
+    session.setAttribute("forestPosition", newX + "," + newY); // Sauvegarde de la position de la forÃªt
+    System.out.println("ArrivÃ©e sur une case forÃªt en position (" + newX + ", " + newY + ")");
     response.sendRedirect("lecture_carte.jsp");
 } 
 
 else {
-    session.setAttribute("askDestroyForest", false); // Aucune forêt rencontrée
-    session.setAttribute("playerPosition", newX + "," + newY); // Mise à jour de la position
+    session.setAttribute("askDestroyForest", false); // Aucune forÃªt rencontrÃ©e
+    session.setAttribute("playerPosition", newX + "," + newY); // Mise Ã  jour de la position
     if (grille[newX][newY] == 0) {
-        System.out.println("Position mise à jour : (" + newX + ", " + newY + ")");
+        System.out.println("Position mise Ã  jour : (" + newX + ", " + newY + ")");
     } else {
-        System.out.println("Mouvement bloqué : la tuile (" + newX + ", " + newY + ") n'est pas accessible.");
+        System.out.println("Mouvement bloquÃ© : la tuile (" + newX + ", " + newY + ") n'est pas accessible.");
     }
     response.sendRedirect("lecture_carte.jsp");
         }
