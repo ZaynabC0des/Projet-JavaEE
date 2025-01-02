@@ -9,13 +9,15 @@ import java.sql.Statement;
 
 public class UserBDD {
 	
-	public Connection init() {
+	public Connection init() throws ClassNotFoundException {
 	    String url = "jdbc:mysql://localhost:3306/projet_jee";
 	    String user = "root";
 	    String password = "";
 	    Connection cnx = null;
-	    
-	    try {
+		Class.forName("com.mysql.cj.jdbc.Driver");
+
+
+		try {
 	        cnx = DriverManager.getConnection(url, user, password);
 	    } catch (SQLException e) {
 	        e.printStackTrace();
@@ -34,12 +36,14 @@ public class UserBDD {
 	        return result > 0;
 	    } catch (SQLException e) {
 	        e.printStackTrace();
-	        throw e; // Relance l'exception pour la gérer plus haut dans la stack
-	    }
-	}
+	        throw e; // Relance l'exception pour la gï¿½rer plus haut dans la stack
+	    } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	//recherche de l utilisateur dans la bdd
-	public User findUser(User u) throws SQLException {
+	public User findUser(User u) throws SQLException, ClassNotFoundException {
 		Connection cnx= this.init();
 		Statement stm = cnx.createStatement();
 		String sql = "SELECT * FROM user WHERE login = '" + u.getLogin() + "' AND password = '" + u.getPassword() + "'";
@@ -52,7 +56,7 @@ public class UserBDD {
 	}
 	
 	//verifier que le user existe
-	public boolean checkUserExists(String login) throws SQLException {
+	public boolean checkUserExists(String login) throws SQLException, ClassNotFoundException {
 	    String query = "SELECT count(*) FROM user WHERE login = ?";
 	    try (Connection conn = this.init();
 	         PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -76,11 +80,13 @@ public class UserBDD {
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	        throw e;
-	    }
-	}
+	    } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	
-	public int getProductionPoints(String login) throws SQLException {
+	public int getProductionPoints(String login) throws SQLException, ClassNotFoundException {
 	    String query = "SELECT point_production FROM user WHERE login = ?";
 	    try (Connection conn = this.init();
 	         PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -90,7 +96,7 @@ public class UserBDD {
 	            return rs.getInt("point_production");
 	        }
 	    }
-	    return 0; // Valeur par défaut si aucun utilisateur trouvé
+	    return 0; // Valeur par dï¿½faut si aucun utilisateur trouvï¿½
 	
 	}
 
@@ -103,8 +109,10 @@ public class UserBDD {
 	        if (rs.next()) {
 	            return rs.getInt("point_production") >= 15;
 	        }
-	    }
-	    return false;
+	    } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
 	}
 	
 

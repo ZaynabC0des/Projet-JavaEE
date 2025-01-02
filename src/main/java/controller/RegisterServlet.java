@@ -41,7 +41,7 @@ public class RegisterServlet extends HttpServlet {
         try {
             // Check if the user already exists
             if (utable.checkUserExists(login)) {
-                request.setAttribute("error", "Le login est déjà utilisé. Veuillez choisir un autre login.");
+                request.setAttribute("error", "Le login est dï¿½jï¿½ utilisï¿½. Veuillez choisir un autre login.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 return;
             }
@@ -49,7 +49,7 @@ public class RegisterServlet extends HttpServlet {
             // Add the new user
             if (utable.addUser(newUser)) {
                 // Create directory for the user
-                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
+                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 new File(userDir).mkdirs();
 
@@ -64,13 +64,15 @@ public class RegisterServlet extends HttpServlet {
                 // Redirect to another page after successful registration
                 response.sendRedirect("lecture_carte.jsp");
             } else {
-                request.setAttribute("error", "L'inscription a échoué. Erreur lors de l'ajout de l'utilisateur.");
+                request.setAttribute("error", "L'inscription a ï¿½chouï¿½. Erreur lors de l'ajout de l'utilisateur.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            request.setAttribute("error", "Erreur de système: " + e.getMessage());
+            request.setAttribute("error", "Erreur de systï¿½me: " + e.getMessage());
             request.getRequestDispatcher("connexion.jsp").forward(request, response);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -40,7 +40,7 @@ public class LoginServlet extends HttpServlet {
             User foundUser = utable.findUser(u1);
             if (foundUser != null) {
                 session.setAttribute("user", foundUser);
-                System.out.println("Utilisateur trouvé : " + foundUser.getLogin());
+                System.out.println("Utilisateur trouvï¿½ : " + foundUser.getLogin());
 
                 // Chemin vers le fichier CSV de l'utilisateur
                 String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
@@ -54,7 +54,7 @@ public class LoginServlet extends HttpServlet {
                     try {
                         int[][] grille = initializeGrid(userFilePath);
                         session.setAttribute("grille", grille);
-                       // System.out.println("Grille initialisée avec succès.");
+                       // System.out.println("Grille initialisï¿½e avec succï¿½s.");
                         response.sendRedirect("lecture_carte.jsp");
                         
                     } catch (IOException e) {
@@ -63,24 +63,26 @@ public class LoginServlet extends HttpServlet {
                         request.getRequestDispatcher("connexion.jsp").forward(request, response);
                     }
                 } else {
-                    request.setAttribute("error", "Fichier CSV non trouvé.");
+                    request.setAttribute("error", "Fichier CSV non trouvï¿½.");
                     request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 }
             } else {
-                request.setAttribute("error", "Identifiants incorrects ou utilisateur non trouvé.");
+                request.setAttribute("error", "Identifiants incorrects ou utilisateur non trouvï¿½.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            response.getWriter().println("Erreur de connexion à la base de données : " + e.getMessage());
+            response.getWriter().println("Erreur de connexion ï¿½ la base de donnï¿½es : " + e.getMessage());
             if (e.getErrorCode() == 0) {
-                System.out.println("Pas connecté à la BDD");
+                System.out.println("Pas connectï¿½ ï¿½ la BDD");
             }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * Méthode pour lire le fichier CSV et initialiser la grille.
+     * Mï¿½thode pour lire le fichier CSV et initialiser la grille.
      * 
      * @param filePath Chemin vers le fichier CSV
      * @return Grille sous forme de tableau 2D d'entiers

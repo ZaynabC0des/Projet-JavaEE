@@ -23,25 +23,25 @@ public class UpdatePositionServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Récupération de la session utilisateur
+        // Rï¿½cupï¿½ration de la session utilisateur
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            System.out.println("Erreur : L'utilisateur n'est pas authentifié.");
+            System.out.println("Erreur : L'utilisateur n'est pas authentifiï¿½.");
             response.sendRedirect("connexion.jsp");
             return;
         }
 
-        // Récupération des attributs de la session
+        // Rï¿½cupï¿½ration des attributs de la session
         String csvFilePath = (String) session.getAttribute("userFilePath");
         int[][] grille = (int[][]) session.getAttribute("grille");
         if (csvFilePath == null || grille == null) {
-            System.out.println("Erreur : Données utilisateur ou grille manquantes.");
+            System.out.println("Erreur : Donnï¿½es utilisateur ou grille manquantes.");
             response.sendRedirect("lecture_carte.jsp");
             return;
         }
 
-        // Paramètres de la requête
+        // Paramï¿½tres de la requï¿½te
         String[] positionParts = request.getParameter("position").split(",");
         int x = Integer.parseInt(positionParts[0]);
         int y = Integer.parseInt(positionParts[1]);
@@ -56,25 +56,27 @@ public class UpdatePositionServlet extends HttpServlet {
                 System.out.println("Action inconnue : " + action);
             } 
             
-            // Vérification des points de production
+            // Vï¿½rification des points de production
             checkProductionPoints(session, user);
         } catch (SQLException e) {
             e.printStackTrace();
-            session.setAttribute("errorMessage", "Erreur lors de la mise à jour des points de production.");
+            session.setAttribute("errorMessage", "Erreur lors de la mise ï¿½ jour des points de production.");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
 
-        // Redirection vers la carte mise à jour
+        // Redirection vers la carte mise ï¿½ jour
         response.sendRedirect("lecture_carte.jsp");
     }
 
-    private void handleDestroyForest(HttpSession session, User user, String csvFilePath, int[][] grille, int x, int y) throws IOException, SQLException {
-        // Vérifie si la case est bien une forêt
+    private void handleDestroyForest(HttpSession session, User user, String csvFilePath, int[][] grille, int x, int y) throws IOException, SQLException, ClassNotFoundException {
+        // Vï¿½rifie si la case est bien une forï¿½t
         if (grille[x][y] == 2) {
-            // Mise à jour de la grille
+            // Mise ï¿½ jour de la grille
             grille[x][y] = 0;
             session.setAttribute("grille", grille);
 
-            // Mise à jour du fichier CSV
+            // Mise ï¿½ jour du fichier CSV
             List<String> lines = Files.readAllLines(Paths.get(csvFilePath));
             String[] row = lines.get(x).split(",");
             row[y] = "0";
@@ -86,30 +88,30 @@ public class UpdatePositionServlet extends HttpServlet {
                 }
             }
 
-            // Mise à jour des points de production
+            // Mise ï¿½ jour des points de production
             UserBDD userBDD = new UserBDD();
             boolean success = userBDD.updateProductionPoints(user.getLogin(), 2);
             if (success) {
-                System.out.println("Points de production ajoutés pour l'utilisateur " + user.getLogin());
+                System.out.println("Points de production ajoutï¿½s pour l'utilisateur " + user.getLogin());
                 int updatedPoints = userBDD.getProductionPoints(user.getLogin());
                 session.setAttribute("productionPoints", updatedPoints);
             } else {
                 System.out.println("Erreur lors de l'ajout des points de production.");
             }
 
-            System.out.println("Forêt détruite en position (" + x + ", " + y + ").");
+            System.out.println("Forï¿½t dï¿½truite en position (" + x + ", " + y + ").");
         } else {
-            System.out.println("Erreur : La case (" + x + ", " + y + ") n'est pas une forêt.");
+            System.out.println("Erreur : La case (" + x + ", " + y + ") n'est pas une forï¿½t.");
         }
 
-        // Mise à jour de la position du joueur
+        // Mise ï¿½ jour de la position du joueur
         session.setAttribute("playerPosition", x + "," + y);
     }
 
     private void handleMoveOnly(HttpSession session, int x, int y) {
-        // Mise à jour uniquement de la position
+        // Mise ï¿½ jour uniquement de la position
         session.setAttribute("playerPosition", x + "," + y);
-        System.out.println("Déplacement sans destruction en position (" + x + ", " + y + ").");
+        System.out.println("Dï¿½placement sans destruction en position (" + x + ", " + y + ").");
     }
     
     private void checkProductionPoints(HttpSession session, User user) throws SQLException {
