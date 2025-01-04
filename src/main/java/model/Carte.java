@@ -40,13 +40,10 @@ public class Carte {
                     int tileCode = Integer.parseInt(tileData[0]);
                     TuileType tType = TuileType.fromCode(tileCode);
 
-                    if (tType == TuileType.SOLDAT && tileData.length == 3) {
+                    if ( tileData.length == 3) {
                         String login = tileData[1];
                         int pointsDeVie = Integer.parseInt(tileData[2]);
 
-                        Soldat soldat = new Soldat(x, y, login, pointsDeVie);
-                        soldats.add(soldat);
-                        map[x][y] = soldat;
                     } else {
                         map[x][y] = Tuile.createTuile(x, y, tType, "", 0); // Utiliser des valeurs par défaut pour login et points de vie
                     }

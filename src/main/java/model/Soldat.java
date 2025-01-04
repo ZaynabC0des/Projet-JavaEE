@@ -1,32 +1,51 @@
 package model;
 
-public class Soldat extends Tuile {
-    private int id_soldat;
-    private String login_user;  // Utilisation du login au lieu de l'ID utilisateur
+public class Soldat {
+	private int id;
+    private int x;
+    private int y;
     private int pointsDeVie;
+    private String loginUser;
 
-    // Constructeur
-    public Soldat(int x, int y, String login_user, int pointsDeVie) {
-        super(x, y, TuileType.SOLDAT); // Définit la position et le type
-        this.login_user = login_user;
+    // Constructor matching the parameters in SoldatBDD
+    public Soldat(int id, int x, int y, int pointsDeVie) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
         this.pointsDeVie = pointsDeVie;
     }
 
-    // Getters et setters
+    // Another constructor with the loginUser parameter
+    public Soldat(int x, int y, String loginUser, int pointsDeVie) {
+        this.x = x;
+        this.y = y;
+        this.loginUser = loginUser;
+        this.pointsDeVie = pointsDeVie;
+    }
+
+    // Getters and setters
     public int getId() {
-        return id_soldat;
+        return id;
     }
 
     public void setId(int id) {
-        this.id_soldat = id;
+        this.id = id;
     }
 
-    public String getLoginUser() {
-        return login_user;
+    public int getX() {
+        return x;
     }
 
-    public void setLoginUser(String login_user) {
-        this.login_user = login_user;
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     public int getPointsDeVie() {
@@ -35,5 +54,13 @@ public class Soldat extends Tuile {
 
     public void setPointsDeVie(int pointsDeVie) {
         this.pointsDeVie = pointsDeVie;
+    }
+
+    public String getLoginUser() {
+        return loginUser;
+    }
+
+    public void setLoginUser(String loginUser) {
+        this.loginUser = loginUser;
     }
 }

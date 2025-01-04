@@ -34,7 +34,6 @@ public class Tuile {
             case VILLE -> new Ville(x, y);
             case FORET -> new Foret(x, y);
             case MONTAGNE -> new Montagne(x, y);
-            case SOLDAT -> new Soldat(x, y, login, pointsDeVie);  // Notez que 'idJoueur' est maintenant 'login' et c'est un String
             default -> new Tuile(x, y, tType);
         };
     }

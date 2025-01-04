@@ -134,6 +134,44 @@ public class SoldatBDD {
         }
         return soldats;
     }
+    
+    public Soldat getSoldatById(int soldatId) {
+        String sql = "SELECT * FROM soldat WHERE id_soldat = ?";
+        try (Connection cnx = initConnection();
+             PreparedStatement stmt = cnx.prepareStatement(sql)) {
+
+            stmt.setInt(1, soldatId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int x = rs.getInt("x_position");
+                int y = rs.getInt("y_position");
+                int pointDeVie = rs.getInt("point_de_vie");
+                return new Soldat(soldatId, x, y, pointDeVie);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public boolean updatePosition(int soldatId, int newX, int newY) {
+        String sql = "UPDATE soldat SET x_position = ?, y_position = ? WHERE id_soldat = ?";
+        try (Connection cnx = initConnection();
+             PreparedStatement stmt = cnx.prepareStatement(sql)) {
+
+            stmt.setInt(1, newX);
+            stmt.setInt(2, newY);
+            stmt.setInt(3, soldatId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     
   
