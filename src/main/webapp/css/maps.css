@@ -159,6 +159,24 @@ img {
     transition: all 0.3s ease-in-out; /* Transition fluide pour les interactions */
 }
 
+/* Style général des boutons */
+.button-container .custom-button {
+    padding: 10px 20px; /* Taille du bouton */
+    font-family: 'PixelGame', 'Press Start 2P', monospace; /* Police de caractères */
+    font-size: 14px; /* Taille de la police */
+    cursor: pointer; /* Curseur en forme de pointeur pour indiquer l'interactivité */
+    color: #fff; /* Couleur du texte */
+    background-color: #333; /* Couleur de fond du bouton */
+    border: 2px solid #fff; /* Bordure blanche */
+    border-radius: 10px; /* Coins arrondis */
+    transition: all 0.3s ease-in-out; /* Animation douce pour les interactions */
+}
+
+.button-container .custom-button:hover {
+    background-color: #555; /* Assombrir le bouton au survol */
+    color: #ccc; /* Claircir le texte au survol */
+}
+
 /* Effet au survol */
 .movement-controls button:hover {
     background-color: rgb(0, 255, 255); /* Fond cyan au survol */
