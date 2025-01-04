@@ -112,47 +112,93 @@ public class SoldatBDD {
         }
     }
     
-    public List<Soldat> getSoldatsByUser(String loginUser) {
-        String sql = "SELECT id_soldat, x_position, y_position, point_de_vie FROM soldat WHERE login_user = ?";
+    public List<Soldat> getSoldatsByUser(String userLogin) throws SQLException {
+        String query = "SELECT s.id_soldat, s.x_position, s.y_position, s.point_de_vie, u.soldierImage " +
+                       "FROM soldat s " +
+                       "JOIN user u ON s.login_user = u.login " +
+                       "WHERE s.login_user = ?";
         List<Soldat> soldats = new ArrayList<>();
-        try (Connection cnx = initConnection();
-             PreparedStatement stmt = cnx.prepareStatement(sql)) {
-
-            stmt.setString(1, loginUser);
+        try (Connection conn = initConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, userLogin);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                int id = rs.getInt("id_soldat");
-                int x = rs.getInt("x_position");
-                int y = rs.getInt("y_position");
-                int pointsDeVie = rs.getInt("point_de_vie");
-                Soldat soldat = new Soldat(x, y, loginUser, pointsDeVie);
-                soldat.setId(id);
+                Soldat soldat = new Soldat();
+                soldat.setId(rs.getInt("id_soldat"));
+                soldat.setX(rs.getInt("x_position"));
+                soldat.setY(rs.getInt("y_position"));
+                soldat.setPointDeVie(rs.getInt("point_de_vie"));
+
+                // Récupérer le chemin de l'image
+                String imagePath = rs.getString("soldierImage");
+                soldat.setImagePath(imagePath);
+               
+                
+             // Log du chemin de l'image
+                System.out.println("Soldat ID: " + soldat.getId() + ", Image Path: " + imagePath);
+
                 soldats.add(soldat);
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
         return soldats;
     }
     
-    public Soldat getSoldatById(int soldatId) {
-        String sql = "SELECT * FROM soldat WHERE id_soldat = ?";
-        try (Connection cnx = initConnection();
-             PreparedStatement stmt = cnx.prepareStatement(sql)) {
+    public List<Soldat> getAllSoldats() throws SQLException {
+        String query = "SELECT s.id_soldat, s.x_position, s.y_position, s.point_de_vie, u.soldierImage " +
+                       "FROM soldat s " +
+                       "JOIN user u ON s.login_user = u.login";
+        List<Soldat> soldats = new ArrayList<>();
+        try (Connection conn = initConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Soldat soldat = new Soldat();
+                soldat.setId(rs.getInt("id_soldat"));
+                soldat.setX(rs.getInt("x_position"));
+                soldat.setY(rs.getInt("y_position"));
+                soldat.setPointDeVie(rs.getInt("point_de_vie"));
 
-            stmt.setInt(1, soldatId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                int x = rs.getInt("x_position");
-                int y = rs.getInt("y_position");
-                int pointDeVie = rs.getInt("point_de_vie");
-                return new Soldat(soldatId, x, y, pointDeVie);
+                // Récupérer le chemin de l'image
+                String imagePath = rs.getString("soldierImage");
+                soldat.setImagePath(imagePath);
+
+                // Log du chemin de l'image
+             //   System.out.println("Soldat ID: " + soldat.getId() + ", Image Path: " + imagePath);
+
+                soldats.add(soldat);
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
+        }
+        return soldats;
+    }
+
+
+
+    public Soldat getSoldatById(int soldatId) throws SQLException {
+        String query = "SELECT id_soldat, x_position, y_position, point_de_vie, login_user FROM soldat WHERE id_soldat = ?";
+        try (Connection conn = initConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, soldatId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Soldat soldat = new Soldat();
+                soldat.setId(rs.getInt("id_soldat"));
+                soldat.setX(rs.getInt("x_position"));
+                soldat.setY(rs.getInt("y_position"));
+                soldat.setPointDeVie(rs.getInt("point_de_vie"));
+                soldat.setOwner(rs.getString("login_user")); // Propriétaire du soldat
+                return soldat;
+            }
         }
         return null;
     }
+
+
 
 
     public boolean updatePosition(int soldatId, int newX, int newY) {

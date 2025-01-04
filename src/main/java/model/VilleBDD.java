@@ -102,21 +102,27 @@ private boolean villeExiste(int x, int y) throws SQLException {
         }
     }
     
-    // Méthode pour compter les villes possédées par un utilisateur spécifique
-    public int compterVillesPossedeesParUtilisateur(String userLogin) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM ville WHERE id_user = ?";
+    public int getCityDefensePoints(int x, int y) throws SQLException {
+        String sql = "SELECT point_defense FROM ville WHERE x_position = ? AND y_position = ?";
         try (Connection conn = initConnection1();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, userLogin);
+            pstmt.setInt(1, x);
+            pstmt.setInt(2, y);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    return rs.getInt("point_defense");
                 }
-                return 0;  // Retourne 0 si aucun résultat n'est trouvé
             }
         }
+        return 0; // Retourne 0 si aucun point de défense n'est trouvé
     }
-    
-    
 
-}
+    
+    
+    
+    
+    
+    
+    }
+
+

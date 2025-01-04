@@ -1,29 +1,27 @@
 package model;
 
 public class Soldat {
-	private int id;
+    private int id;
     private int x;
     private int y;
-    private int pointsDeVie;
-    private String loginUser;
+    private int pointDeVie;
+    private String imagePath;
+    private String owner;
 
-    // Constructor matching the parameters in SoldatBDD
-    public Soldat(int id, int x, int y, int pointsDeVie) {
+    // Constructeur par défaut
+    public Soldat() {
+    }
+
+    // Constructeur complet
+    public Soldat(int id, int x, int y, int pointDeVie, String imagePath) {
         this.id = id;
         this.x = x;
         this.y = y;
-        this.pointsDeVie = pointsDeVie;
+        this.pointDeVie = pointDeVie;
+        this.imagePath = imagePath;
     }
 
-    // Another constructor with the loginUser parameter
-    public Soldat(int x, int y, String loginUser, int pointsDeVie) {
-        this.x = x;
-        this.y = y;
-        this.loginUser = loginUser;
-        this.pointsDeVie = pointsDeVie;
-    }
-
-    // Getters and setters
+    // Getters et setters
     public int getId() {
         return id;
     }
@@ -48,19 +46,27 @@ public class Soldat {
         this.y = y;
     }
 
-    public int getPointsDeVie() {
-        return pointsDeVie;
+    public int getPointDeVie() {
+        return pointDeVie;
     }
 
-    public void setPointsDeVie(int pointsDeVie) {
-        this.pointsDeVie = pointsDeVie;
+    public void setPointDeVie(int pointDeVie) {
+        this.pointDeVie = pointDeVie;
     }
 
-    public String getLoginUser() {
-        return loginUser;
+    public String getImagePath() {
+        return imagePath;
     }
 
-    public void setLoginUser(String loginUser) {
-        this.loginUser = loginUser;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
+    
+	public String getOwner() {
+	    return owner;
+	}
+	
+	public void setOwner(String owner) {
+	    this.owner = owner;
+	}
 }

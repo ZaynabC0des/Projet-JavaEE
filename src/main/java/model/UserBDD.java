@@ -9,12 +9,12 @@ import java.sql.Statement;
 
 public class UserBDD {
 	
-	public Connection init() throws ClassNotFoundException {
+	public Connection init() {
 	    String url = "jdbc:mysql://localhost:3306/projet_jee";
 	    String user = "root";
 	    String password = "";
 	    Connection cnx = null;
-	    Class.forName("com.mysql.jdbc.Driver");
+	    
 	    try {
 	        cnx = DriverManager.getConnection(url, user, password);
 	    } catch (SQLException e) {
@@ -24,22 +24,23 @@ public class UserBDD {
 	}
 	
 	//ajout d un utilisateur dans la bdd
-	public boolean addUser(User u) throws SQLException, ClassNotFoundException {
-	    String sql = "INSERT INTO user (login, password) VALUES (?, ?)";
+	public boolean addUser(User u) throws SQLException {
+	    String sql = "INSERT INTO user (login, password, soldierImage) VALUES (?, ?, ?)";
 	    try (Connection cnx = this.init();
 	         PreparedStatement stmt = cnx.prepareStatement(sql)) {
 	        stmt.setString(1, u.getLogin());
 	        stmt.setString(2, u.getPassword());
+	        stmt.setString(3, u.getSoldierImage());
 	        int result = stmt.executeUpdate();
 	        return result > 0;
-	    } catch (SQLException | ClassNotFoundException e) {
+	    } catch (SQLException e) {
 	        e.printStackTrace();
 	        throw e; // Relance l'exception pour la g�rer plus haut dans la stack
 	    }
 	}
 
 	//recherche de l utilisateur dans la bdd
-	public User findUser(User u) throws SQLException, ClassNotFoundException {
+	public User findUser(User u) throws SQLException {
 		Connection cnx= this.init();
 		Statement stm = cnx.createStatement();
 		String sql = "SELECT * FROM user WHERE login = '" + u.getLogin() + "' AND password = '" + u.getPassword() + "'";
@@ -52,7 +53,7 @@ public class UserBDD {
 	}
 	
 	//verifier que le user existe
-	public boolean checkUserExists(String login) throws SQLException, ClassNotFoundException {
+	public boolean checkUserExists(String login) throws SQLException {
 	    String query = "SELECT count(*) FROM user WHERE login = ?";
 	    try (Connection conn = this.init();
 	         PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -76,13 +77,11 @@ public class UserBDD {
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	        throw e;
-	    } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
+	    }
+	}
 
 	
-	public int getProductionPoints(String login) throws SQLException, ClassNotFoundException {
+	public int getProductionPoints(String login) throws SQLException {
 	    String query = "SELECT point_production FROM user WHERE login = ?";
 	    try (Connection conn = this.init();
 	         PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -105,19 +104,15 @@ public class UserBDD {
 	        if (rs.next()) {
 	            return rs.getInt("point_production") >= 15;
 	        }
-	    } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        return false;
+	    }
+	    return false;
 	}
 
 	//level pour le joueur
-	public void updatePlayerLevel(String userLogin) throws SQLException, ClassNotFoundException {
-	    VilleBDD villeBDD = new VilleBDD();
-	    SoldatBDD soldatBDD = new SoldatBDD();
-	    
-	    int villeCount = villeBDD.compterVillesPossedeesParUtilisateur(userLogin);
-	    int soldierCount = soldatBDD.compterSoldatsPossedesParUtilisateur(userLogin);  // Assurez-vous d'avoir cette m�thode dans SoldatBDD
+	public void updatePlayerLevel(String userLogin) throws SQLException {
+		
+	    int villeCount = compterVillesPossedeesParUtilisateur(userLogin);
+	    int soldierCount = compterSoldatsPossedesParUtilisateur(userLogin);  // Assurez-vous d'avoir cette m�thode dans SoldatBDD
 
 	    System.out.println("Utilisateur " + userLogin + " poss�de " + villeCount + " ville(s) et " + soldierCount + " soldat(s).");
 	    
@@ -140,26 +135,64 @@ public class UserBDD {
 
 
     // Récupérer les détails complets d'un utilisateur
-    public User getUserDetails(String login) throws SQLException {
-        String query = "SELECT login, point_production FROM user WHERE login = ?";
+	public User getUserDetails(String login) throws SQLException {
+	    String query = "SELECT login, point_production, soldierImage FROM user WHERE login = ?";
+	    try (Connection conn = this.init();
+	         PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setString(1, login);
+	        ResultSet rs = stmt.executeQuery();
+	        if (rs.next()) {
+	            // Crée et retourne un objet User avec les détails récupérés
+	            String soldierImage = rs.getString("soldierImage");
+	            User user = new User(0, rs.getString("login"), null, rs.getInt("point_production"), soldierImage);
+	            return user;
+	        }
+	    }
+	    return null; // Retourne null si aucun utilisateur n'est trouvé
+	}
+
+	
+ // Méthode pour compter les villes possédées par un utilisateur spécifique
+    public int compterVillesPossedeesParUtilisateur(String userLogin) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM ville WHERE id_user = ?";
         try (Connection conn = this.init();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, userLogin);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+                return 0;  // Retourne 0 si aucun résultat n'est trouvé
+            }
+        }
+    }
+    
+    public int compterSoldatsPossedesParUtilisateur(String userLogin) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM soldat WHERE login_user = ?";
+        try (Connection conn = this.init();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, userLogin);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+                return 0;  // Retourne 0 si aucun résultat n'est trouvé
+            }
+        }
+    }
+        
+    public String getSoldierImage(String login) throws SQLException {
+        String query = "SELECT soldierImage FROM user WHERE login = ?";
+        try (Connection conn = this.init();
+        	PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, login);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                // Crée et retourne un objet User avec les détails récupérés
-                User user = new User(0, query, query, 0);
-                user.setLogin(rs.getString("login"));
-                user.setPointProduction(rs.getInt("point_production"));
-                return user;
+                return rs.getString("soldierImage");
             }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
-        return null; // Retourne null si aucun utilisateur n'est trouvé
+        return "default-soldier.png"; // Valeur par défaut
     }
-	
-	
-	
+
 
 }

@@ -41,6 +41,10 @@ public class Ville extends Tuile {
         this.productionPoints = productionPoints;
     }
 
+    public boolean estCibleEnVie() {
+        return defensePoints > 0;
+    }
+
 
 
 
