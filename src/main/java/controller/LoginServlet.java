@@ -18,7 +18,6 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -42,7 +41,7 @@ public class LoginServlet extends HttpServlet {
         String password = request.getParameter("password");
         User u1 = new User(login, password);
         UserBDD utable = new UserBDD();
-
+      
         try {
             User foundUser = utable.findUser(u1);
             if (foundUser != null) {
@@ -55,10 +54,15 @@ public class LoginServlet extends HttpServlet {
                 User userDetails = utable.getUserDetails(foundUser.getLogin());
                 if (userDetails != null) {
                     session.setAttribute("productionPoints", userDetails.getPointProduction());
+                
+                 // Récupérer et stocker l'image du soldat dans la session
+                    session.setAttribute("soldierImage", userDetails.getSoldierImage());
+                
                 }
+                
 
                 // Chemin vers le dossier et le fichier CSV de l'utilisateur
-                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
+                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 String userFilePath = Paths.get(userDir, login + ".csv").toString();
 
@@ -108,8 +112,6 @@ public class LoginServlet extends HttpServlet {
             if (e.getErrorCode() == 0) {
                 System.out.println("Pas connectï¿½ ï¿½ la BDD");
             }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
     }
 

@@ -61,15 +61,13 @@ public class UpdatePositionServlet extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
             session.setAttribute("errorMessage", "Erreur lors de la mise � jour des points de production.");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
 
         // Redirection vers la carte mise � jour
         response.sendRedirect("lecture_carte.jsp");
     }
 
-    private void handleDestroyForest(HttpSession session, User user, String csvFilePath, int[][] grille, int x, int y) throws IOException, SQLException, ClassNotFoundException {
+    private void handleDestroyForest(HttpSession session, User user, String csvFilePath, int[][] grille, int x, int y) throws IOException, SQLException {
         // V�rifie si la case est bien une for�t
         if (grille[x][y] == 2) {
             grille[x][y] = 0;     // Mise � jour de la grille

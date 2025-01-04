@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.Objects;
 
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
@@ -42,15 +41,20 @@ public class RegisterServlet extends HttpServlet {
         try {
             // Check if the user already exists
             if (utable.checkUserExists(login)) {
-                request.setAttribute("error", "Le login est dï¿½jï¿½ utilisï¿½. Veuillez choisir un autre login.");
+                request.setAttribute("error", "Le login est deja utilisé. Veuillez choisir un autre login.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 return;
             }
 
+            // Assign an image to the new user
+            String soldierImage = assignSoldierImage(login); // Génère l'image pour l'utilisateur
+            newUser.setSoldierImage(soldierImage); // Associe l'image à l'utilisateur
+
+           
             // Add the new user
             if (utable.addUser(newUser)) {
                 // Create directory for the user
-                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
+                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 new File(userDir).mkdirs();
 
@@ -72,8 +76,22 @@ public class RegisterServlet extends HttpServlet {
             e.printStackTrace();
             request.setAttribute("error", "Erreur de systï¿½me: " + e.getMessage());
             request.getRequestDispatcher("connexion.jsp").forward(request, response);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
     }
+    
+    
+    //test 
+    private String assignSoldierImage(String username) {
+        int hash = username.hashCode();
+        int index = Math.abs(hash % 4); // Limite à 5 images ou couleurs
+        String[] images = {
+            "images/soldats/soldat_bleu.jpg",
+            "images/soldats/soldat_vert.jpg",
+            "images/soldats/soldat_rouge.jpg",
+            "images/soldats/soldat_violet.jpg"
+           
+        };
+        return images[index];
+    }
+
 }

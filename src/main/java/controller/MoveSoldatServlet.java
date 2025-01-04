@@ -1,6 +1,7 @@
 package controller;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,6 +18,7 @@ public class MoveSoldatServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
+        String loggedInUser = (String) session.getAttribute("userLogin"); // Utilisateur connecté
         String soldatIdParam = request.getParameter("soldatId");
         String direction = request.getParameter("direction");
 
@@ -30,11 +32,20 @@ public class MoveSoldatServlet extends HttpServlet {
 
         int soldatId = Integer.parseInt(soldatIdParam);
         SoldatBDD soldatBDD = new SoldatBDD();
-        Soldat soldat = soldatBDD.getSoldatById(soldatId);
+        Soldat soldat = null;
+
+        try {
+            soldat = soldatBDD.getSoldatById(soldatId);
 
         if (soldat == null) {
             System.out.println("Soldat non trouvé avec ID=" + soldatId);
             response.getWriter().write("{\"success\": false, \"message\": \"Soldat non trouvé.\"}");
+            return;
+        }
+        
+        // Vérification : Est-ce que l'utilisateur connecté est le propriétaire du soldat ?
+        if (!soldat.getOwner().equals(loggedInUser)) {
+            response.getWriter().write("{\"success\": false, \"message\": \"Vous ne pouvez pas déplacer ce soldat.\"}");
             return;
         }
 
@@ -56,28 +67,28 @@ public class MoveSoldatServlet extends HttpServlet {
                 newY++;
                 break;
             default:
-                System.out.println("Direction invalide : " + direction);
                 response.getWriter().write("{\"success\": false, \"message\": \"Direction invalide.\"}");
                 return;
         }
 
         System.out.println("Nouvelle position proposée : (" + newX + ", " + newY + ")");
 
-     // Vérifie que la nouvelle position est libre
         int[][] grille = (int[][]) session.getAttribute("grille");
         if (grille != null && newX >= 0 && newY >= 0 && newX < grille.length && newY < grille[0].length) {
-            if (grille[newX][newY] == 0) {
-            	//mettre a jours la bdd 
+            if (grille[newX][newY] == 2) { // Vérification si la case est une forêt
+                session.setAttribute("proposedPosition", newX + "," + newY);
+                session.setAttribute("askDestroyForest", true); // Demande de confirmation pour détruire la forêt
+                session.setAttribute("forestPosition", newX + "," + newY); // Sauvegarde de la position de la forêt
+                System.out.println("Arrivée sur une case forêt en position (" + newX + ", " + newY + ")");
+                response.sendRedirect("lecture_carte.jsp");
+            } else if (grille[newX][newY] == 0) {
                 boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
                 if (success) {
-                	//mise a jours de la grille 
-                    System.out.println("Position mise à jour avec succès dans la base !");
                     grille[soldat.getX()][soldat.getY()] = 0; // Libérer l'ancienne position
                     grille[newX][newY] = soldatId; // Occuper la nouvelle position
                     session.setAttribute("grille", grille);
                     response.getWriter().write("{\"success\": true}");
                 } else {
-                    System.out.println("Erreur lors de la mise à jour en base.");
                     response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise à jour en base.\"}");
                 }
             } else {
@@ -88,6 +99,10 @@ public class MoveSoldatServlet extends HttpServlet {
             System.out.println("Position hors limite ou grille non définie.");
             response.getWriter().write("{\"success\": false, \"message\": \"Position hors limite.\"}");
         }
+    }catch (SQLException e) {
+        e.printStackTrace();
+        response.getWriter().write("{\"success\": false, \"message\": \"Erreur interne : " + e.getMessage() + "\"}");
     }
+}
     
 }
