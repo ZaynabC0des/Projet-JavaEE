@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Combat;
-import model.UserBDD;
 import model.VilleBDD;
 
 import java.io.IOException;
@@ -21,10 +20,10 @@ public class PlayerMoveServlet extends HttpServlet {
 protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	
     HttpSession session = request.getSession();//toujours co a la session
-    String userLogin = (String) session.getAttribute("userLogin");
+   
     int[][] grille = (int[][]) session.getAttribute("grille");//recupere la grille
 	VilleBDD villeBDD = new VilleBDD();
-    UserBDD userBDD = new UserBDD();
+    
     
 	if (grille == null) { //les erreurs possible d initialisation
 	    System.out.println("Erreur : la grille n'est pas initialis�e.");
