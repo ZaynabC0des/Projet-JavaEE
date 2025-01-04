@@ -23,3 +23,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 });
+
+
+ function selectSoldat(soldatId) {
+        // Envoyer l'ID du soldat au serveur pour le sélectionner
+        fetch('SelectSoldatServlet?soldatId=' + soldatId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Soldat sélectionné ! Utilisez les boutons de déplacement.");
+                } else {
+                    alert("Erreur lors de la sélection du soldat.");
+                }
+            });
+    }

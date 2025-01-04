@@ -3,6 +3,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <script src="js/gameControls.js"></script> 
 <script src="js/modalControls.js"></script> 
+<script src="js/moveSoldat.js"></script> 
 <link rel="stylesheet" type="text/css" href="css/combat.css">
 
 
@@ -56,6 +57,7 @@ if (request.getParameter("attaquer") != null && combat.estCibleEnVie()) {
     session.setAttribute("askDestroyForest", false); // Réinitialiser l'indicateur
 }
 %>
+<!DOCTYPE html>
 <html>
 
 
@@ -104,6 +106,20 @@ if (request.getParameter("attaquer") != null && combat.estCibleEnVie()) {
     <button onclick="movePlayer('right')">Droite</button>
 </div>
 
+<% 
+    Boolean canRecruit = (Boolean) session.getAttribute("canRecruit");
+    if (canRecruit != null && canRecruit) {
+%>
+      <div class="button-container">
+        <form action="RecruitSoldierServlet" method="POST">
+            <button type="submit" class="custom-button">Recruter un soldat</button>
+        </form>
+    </div>
+<% 
+    } 
+%>
+
+
 <div class = "container">
 <%
 //Charger les soldats du joueur
@@ -127,8 +143,14 @@ if (userFilePath == null) {
             playerY = Integer.parseInt(positionParts[1]);
         }
   %>
-  <table border="1">
-<%  
+  <script>
+    function selectSoldat(soldatId) {
+        console.log("Soldat " + soldatId); // Affiche l'ID du soldat dans la console
+    }
+</script>
+  
+<table border="1">
+<% 
 try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
     String line;
     int rowNum = 0;
@@ -140,27 +162,24 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
             String imagePath = "";
 
             // Vérifiez si un soldat est à cette position
-            boolean hasSoldat = false;
-            for (Soldat soldat : soldats) {
-                if (soldat.getX() == rowNum && soldat.getY() == colNum) {
-                    hasSoldat = true;
-                    break;
+            Soldat currentSoldat = null;
+            for (Soldat s : soldats) {
+                if (s.getX() == rowNum && s.getY() == colNum) {
+                    currentSoldat = s;
+                    break; // Arrêtez la boucle dès que le soldat est trouvé
                 }
             }
 
-         // Ajouter "J1" si c'est la position du joueur
+            // Ajouter "J1" si c'est la position du joueur
             if (rowNum == playerX && colNum == playerY) {
                 out.println("<td>J1</td>");
-                
-            } else if (hasSoldat) {
+            } else if (currentSoldat != null) {
                 // Afficher un soldat
-                out.println("<td style='position: absolute;'>");
+                out.println("<td style='position: relative;'>");
                 out.println("<img src='" + request.getContextPath() + "/images/tuiles/vide.png' style='width: 50px; height: 50px; position: absolute;'>");
-                out.println("<img src='" + request.getContextPath() + "/images/tuiles/test.jpg' style='width: 50px; height: 50px; position: absolute;'>");
+                out.println("<img src='" + request.getContextPath() + "/images/tuiles/test.jpg' style='width: 50px; height: 50px; position: relative; cursor: pointer;' onclick='selectSoldat(" + currentSoldat.getId() + ")'>");
                 out.println("</td>");
-            }
-         
-            else {
+            } else {
                 // Afficher la case normale
                 switch (code) {
                     case 0: // Case vide
@@ -190,20 +209,71 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
 }
 %>
 </table>
+
 </div>
 
-<% 
-    Boolean canRecruit = (Boolean) session.getAttribute("canRecruit");
-    if (canRecruit != null && canRecruit) {
-%>
-    <div class="recruit-button-container">
-        <form action="RecruitSoldierServlet" method="POST">
-            <button type="submit" class="recruit-button">Recruter un soldat</button>
-        </form>
-    </div>
-<% 
-    } 
-%>
+
+<script>
+//Déclare une variable globale pour stocker l'ID du soldat sélectionné
+window.selectedSoldatId = null;
+
+
+// Fonction appelée lorsqu'un soldat est cliqué
+function selectSoldat(soldatId) {
+    selectedSoldatId = soldatId;
+    alert("Soldat sélectionné ! ID : " + selectedSoldatId);
+}
+
+function moveSoldat(direction) {
+	console.log("ID du soldat sélectionné :", window.selectedSoldatId); // Vérifie que l'ID est bien stocké
+    if (!window.selectedSoldatId) {
+        alert("Aucun soldat sélectionné !");
+        return;
+    }
+
+    console.log("Déplacement du soldat ID :", window.selectedSoldatId, "Direction :", direction);
+
+    fetch('MoveSoldatServlet?soldatId=' + window.selectedSoldatId + '&direction=' + direction)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Soldat déplacé !");
+                location.reload(); // Recharge la carte après déplacement
+            } else {
+                console.error("Erreur du serveur : ", data.message);
+                alert("Impossible de déplacer le soldat : " + data.message);
+            }
+        })
+        .catch(error => console.error("Erreur lors de la requête : ", error));
+}
+
+
+//Écoute les touches "z", "q", "s", "d"
+document.addEventListener('keydown', function(event) {
+    let direction = null;
+
+    switch (event.key) {
+        case "z": // Haut
+            direction = "up";
+            break;
+        case "s": // Bas
+            direction = "down";
+            break;
+        case "q": // Gauche
+            direction = "left";
+            break;
+        case "d": // Droite
+            direction = "right";
+            break;
+        default:
+            return; // Ignore les autres touches
+    }
+
+    if (direction) {
+        moveSoldat(direction);
+    }
+});
+</script>
 
 
   <% if (Boolean.TRUE.equals(session.getAttribute("combatActive"))) { %>
