@@ -56,12 +56,16 @@ th, td {
     border: 1px solid rgb(0, 255, 255);
     padding: 2px; /* R�duisez le padding pour gagner de la place */
     text-align: center;
+    position : relative
 }
 
 img {
     width: 20px; /* R�duisez la taille des images pour qu'elles prennent moins de place */
     height: 20px;
 }
+
+
+
 
 
 /* Ajout de CSS pour le bouton deconnexion */
