@@ -8,7 +8,7 @@
 
 <%@ page import="model.Combat" %>
 <%@ page import="java.util.Random" %>
-<%@ page import="model.Soldat" %>
+<%@ page import="model.Soldat, model.SoldatBDD" %>
 <%@ page import="java.util.List" %>
 
 <script>
@@ -103,16 +103,22 @@ if (request.getParameter("attaquer") != null && combat.estCibleEnVie()) {
     <button onclick="movePlayer('left')">Gauche</button>
     <button onclick="movePlayer('right')">Droite</button>
 </div>
+
 <div class = "container">
-<table border="1">
 <%
+//Charger les soldats du joueur
+    SoldatBDD soldatBDD = new SoldatBDD();
+    String userLogin = (String) session.getAttribute("userLogin");
+    List<Soldat> soldats = soldatBDD.getSoldatsByUser(userLogin);
+    
+//charger le fichier csv
 String userFilePath = (String) session.getAttribute("userFilePath");
 if (userFilePath == null) {
     out.println("<p>Erreur : Aucun fichier CSV associé à l'utilisateur.</p>");
 } else {
     File csvFile = new File(userFilePath);
-    if (csvFile.exists()) {
-        // Récupérer la position actuelle du joueur
+    if (csvFile.exists()){
+    	 // Récupérer la position actuelle du joueur
         String playerPosition = (String) session.getAttribute("playerPosition");
         int playerX = 0, playerY = 0;
         if (playerPosition != null) {
@@ -120,71 +126,69 @@ if (userFilePath == null) {
             playerX = Integer.parseInt(positionParts[0]);
             playerY = Integer.parseInt(positionParts[1]);
         }
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
-            String line;
-            int rowNum = 0; // Compteur pour les lignes
-            while ((line = br.readLine()) != null) {
-                try {
-                    String[] values = line.split(",");
-                    out.println("<tr>");
-                    for (int colNum = 0; colNum < values.length; colNum++) {
-                        String value = values[colNum].trim();
-                        try {
-                            if (value.isEmpty() || !value.matches("\\d+")) {
-                                throw new NumberFormatException("Valeur invalide : '" + value + "'");
-                            }
-                            int code = Integer.parseInt(value);
-                            TuileType tuileType = TuileType.fromCode(code);
-                            String imagePath = "";
+  %>
+  <table border="1">
+<%  
+try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+    String line;
+    int rowNum = 0;
+    while ((line = br.readLine()) != null) {
+        String[] values = line.split(",");
+        out.println("<tr>");
+        for (int colNum = 0; colNum < values.length; colNum++) {
+            int code = Integer.parseInt(values[colNum].trim());
+            String imagePath = "";
 
-                            // Déterminez l'image en fonction du type de tuile
-                            switch (tuileType) {
-                                case VIDE:
-                                    imagePath = "images/tuiles/vide.png";
-                                    break;
-                                case VILLE:
-                                    imagePath = "images/tuiles/ville.png";
-                                    break;
-                                case FORET:
-                                    imagePath = "images/tuiles/foret.png";
-                                    break;
-                                case MONTAGNE:
-                                    imagePath = "images/tuiles/montagne.png";
-                                    break;
-                                case SOLDAT:
-                                    imagePath = "images/tuiles/soldat.png";
-                                    break;
-                                default:
-                                    imagePath = "";
-                            }
-
-                            // Ajoutez la cellule au tableau
-                            if (rowNum == playerX && colNum == playerY) {
-                                out.println("<td>J1</td>");
-                            } else if (code == 4) { // Code pour le soldat "S1"
-                                out.println("<td>S1</td>");
-                            } else {
-                                out.println("<td><img src='" + request.getContextPath() + "/" + imagePath + "' style='width:50px; height:50px;'></td>");
-                            }
-                        } catch (NumberFormatException e) {
-                            System.err.println("Erreur dans la cellule (" + rowNum + ", " + colNum + "): " + e.getMessage());
-                            out.println("<td style='color:red;'>Erreur</td>");
-                        }
-                    }
-                    out.println("</tr>");
-                } catch (Exception e) {
-                    System.err.println("Erreur dans la ligne " + rowNum + ": " + e.getMessage());
-                    out.println("<tr><td colspan='100' style='color:red;'>Erreur dans cette ligne</td></tr>");
+            // Vérifiez si un soldat est à cette position
+            boolean hasSoldat = false;
+            for (Soldat soldat : soldats) {
+                if (soldat.getX() == rowNum && soldat.getY() == colNum) {
+                    hasSoldat = true;
+                    break;
                 }
-                rowNum++;
             }
-        } catch (IOException e) {
-            out.println("</table>");
-            out.println("<p style='color:red;'>Erreur lors du chargement du fichier CSV : " + e.getMessage() + "</p>");
+
+         // Ajouter "J1" si c'est la position du joueur
+            if (rowNum == playerX && colNum == playerY) {
+                out.println("<td>J1</td>");
+                
+            } else if (hasSoldat) {
+                // Afficher un soldat
+                out.println("<td style='position: absolute;'>");
+                out.println("<img src='" + request.getContextPath() + "/images/tuiles/vide.png' style='width: 50px; height: 50px; position: absolute;'>");
+                out.println("<img src='" + request.getContextPath() + "/images/tuiles/test.jpg' style='width: 50px; height: 50px; position: absolute;'>");
+                out.println("</td>");
+            }
+         
+            else {
+                // Afficher la case normale
+                switch (code) {
+                    case 0: // Case vide
+                        imagePath = "images/tuiles/vide.png";
+                        break;
+                    case 1: // Ville
+                        imagePath = "images/tuiles/ville.png";
+                        break;
+                    case 2: // Forêt
+                        imagePath = "images/tuiles/foret.png";
+                        break;
+                    case 3: // Montagne
+                        imagePath = "images/tuiles/montagne.png";
+                        break;
+                }
+                out.println("<td><img src='" + request.getContextPath() + "/" + imagePath + "' style='width:50px; height:50px;'></td>");
+            }
         }
-
-
-        } %>
+        out.println("</tr>");
+        rowNum++;
+    }
+} catch (IOException e) {
+    out.println("</table>");
+    out.println("<p style='color:red;'>Erreur lors du chargement du fichier CSV : " + e.getMessage() + "</p>");
+}
+}
+}
+%>
 </table>
 </div>
 
@@ -238,7 +242,7 @@ if (userFilePath == null) {
             </div>
            <% } %>
            <% } %>
-         <% } %>
+         <%  %>
                    <!-- Bouton View Profile -->
 		<button id="viewProfileButton" class="view-profile-button">View Profile</button>
             <!-- Profil Joueur -->
