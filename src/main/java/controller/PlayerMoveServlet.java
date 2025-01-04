@@ -6,11 +6,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.Combat;
 import model.UserBDD;
 import model.VilleBDD;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Random;
 @WebServlet("/PlayerMoveServlet")
 public class PlayerMoveServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -48,6 +50,7 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 	int newX = x;
 	int newY = y;
 	
+
 	switch (direction) {
 	    case "up":
 	        if (x > 0) newX--;
@@ -67,17 +70,19 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 	}
 	
 	//les positions du csv 
-	 session.setAttribute("playerPosition", newX + "," + newY); //mise a jours du joueur pour la ville 
+	//
 	if (grille[newX][newY] == 3) {
 		session.setAttribute("showPopup", true); 
-	    System.out.println("Mouvement bloquï¿½ : la montagne en position (" + newX + ", " + newY + ") n'est pas franchissable.");
-	    response.sendRedirect("lecture_carte.jsp"); // Redirige vers la mï¿½me page sans changer la position   
+		session.setAttribute("errorMessage", "Mouvement bloqué : Montagne non franchissable.");
+	    System.out.println("Mouvement bloqué : la montagne en position (" + newX + ", " + newY + ") n'est pas franchissable.");
+	    response.sendRedirect("lecture_carte.jsp"); // Redirige 
+	    return; // Sortir de la méthode pour empêcher toute mise à jour
 	}
 	else if (grille[newX][newY] == 2) { // Vï¿½rification si la case est une forï¿½t
 	    session.setAttribute("proposedPosition", newX + "," + newY);
 	    session.setAttribute("askDestroyForest", true); // Demande de confirmation pour dï¿½truire la forï¿½t
 	    session.setAttribute("forestPosition", newX + "," + newY); // Sauvegarde de la position de la forï¿½t
-	    System.out.println("Arrivï¿½e sur une case forï¿½t en position (" + newX + ", " + newY + ")");
+	    System.out.println("Arrivée sur une case forêt en position (" + newX + ", " + newY + ")");
 	    response.sendRedirect("lecture_carte.jsp");
 	} 
 	
@@ -86,40 +91,52 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 	    session.setAttribute("playerPosition", newX + "," + newY); // Mise ï¿½ jour de la position
 	    
     if (grille[newX][newY] == 0) {
-        System.out.println("Position mise ï¿½ jour : (" + newX + ", " + newY + ")");
+        System.out.println("Position mise a jour : (" + newX + ", " + newY + ")");
     }
-    
-    else {
-    	String owner = null;
-        session.setAttribute("playerPosition", newX + "," + newY); // Mise ï¿½ jour de la position
-        System.out.println("Position mise ï¿½ jour : (" + newX + ", " + newY + ")");
+    session.setAttribute("playerPosition", newX + "," + newY); //mise a jours du joueur pour la ville 
+    // Déclaration et récupération de 'combat' de la session pour vérifier s'il est null
+   // Combat combat = (Combat) session.getAttribute("combat");
 
-        try {
-        	owner = villeBDD.getCityOwner(newX, newY);
-        	 
-              if (owner != null) {
-                  System.out.println("Cette ville appartient ï¿½ " + owner);
-              } else {
-                  System.out.println("Cette ville n'appartient ï¿½ personne.");
-              }
-              
-              
-            // Rï¿½cupï¿½rer le nombre de villes possï¿½dï¿½es et mettre ï¿½ jour les points de production
-            int villeCount = villeBDD.compterVillesPossedeesParUtilisateur(userLogin);
-            session.setAttribute("nombreVilles", villeCount);
+     if ( grille[newX][newY] == 1) { // Si on est sur une case ville
+    	 try {
+             int defensePoints = villeBDD.getCityDefensePoints(newX, newY);
+             Combat combat = new Combat(defensePoints, "ville");
+             session.setAttribute("combat", combat);
+             System.out.println("Nouveau combat initié avec " + defensePoints + " points de défense à la position (" + newX + ", " + newY + ")");
 
-            if (villeCount > 0) {
-                int productionPointsToAdd = villeCount * 0; //modifier ï¿½ 5 plus tard
-                userBDD.updateProductionPoints(userLogin, productionPointsToAdd);
-                System.out.println("Ajoutï¿½ " + productionPointsToAdd + " points de production pour " + villeCount + " villes possï¿½dï¿½es par :" +userLogin);
-            }
-        } catch (SQLException e) {
+             if ("attaquer".equals(request.getParameter("action"))) {
+                 Random random = new Random();
+                 int lancerDe = random.nextInt(6) + 1;
+                 String combatResult = combat.Attaque(lancerDe);
+                 session.setAttribute("combatResult", combatResult);
+                 session.setAttribute("lancerDe", lancerDe);
+
+                 if (!combat.estCibleEnVie()) {
+                     session.removeAttribute("combat");
+                     System.out.println("Combat terminé à la position (" + newX + ", " + newY + ")");
+                 }
+             }
+    	 }
+        catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Erreur SQL lors de la mise ï¿½ jour des points de production : " + e.getMessage());
-            response.getWriter().println("Erreur de base de donnï¿½es lors de la mise ï¿½ jour des points de production.");
+            System.out.println("Erreur SQL lors de la mise à jour des points de production : " + e.getMessage());
+            response.getWriter().println("Erreur de base de données lors de la mise à jour des points de production.");
         }
+    
+
     }
+    System.out.println("newX: " + newX + ", newY: " + newY);
+    System.out.println("Valeur de grille à cette position: " + grille[newX][newY]);
+    System.out.println("Paramètre 'attaquer': " + request.getParameter("attaquer"));
+    
     response.sendRedirect("lecture_carte.jsp");
+    
+
 }
 }
+@Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    doGet(request, response);
+}
+
 }
