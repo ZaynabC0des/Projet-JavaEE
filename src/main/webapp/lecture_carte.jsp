@@ -10,12 +10,117 @@
 <%@ page import="model.Combat" %>
 <%@ page import="java.util.Random" %>
 <%@ page import="model.Soldat, model.SoldatBDD" %>
+<%@ page import="controller.GameWebSocket" %>
 <%@ page import="java.util.List" %>
+
+<%@ page session="true" %>
+<%
+    // Supposons qu'on ait stocké le pseudo en session
+    String username = (String) session.getAttribute("userLogin");
+    if (username == null) {
+        // Si pas connecté, redirection
+        response.sendRedirect("connexion.jsp");
+        return;
+    }
+%>
+
+
+<script>
+    let soldatBlocked=false;
+    let ws;
+    let myUsername = "<%= username %>";
+
+    function appendLog(msg) {
+
+        console.log("Message : " + msg);
+    }
+
+    function initWebSocket() {
+
+        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername;
+        ws = new WebSocket(url);
+
+        ws.onopen = function() {
+            ws.send("{\"type\":\"askTour\",\"username\":\""+myUsername+"\"}");
+        };
+
+        ws.onmessage = function(event) {
+            appendLog("[WS] Message reçu : " + event.data);
+
+            // Tenter de parser le message JSON
+            try {
+                let data = JSON.parse(event.data);
+                handleMessage(data);
+
+
+            } catch(e) {
+                console.error("Erreur parsing JSON", e);
+            }
+        };
+
+        ws.onclose = function() {
+            ws.send(myUsername+" vient de se déconnecter");
+        };
+
+        ws.onerror = function(error) {
+            appendLog("[WS] Erreur : " + error);
+        };
+    }
+
+    // Gérer les différents types de messages reçus
+    function handleMessage(data) {
+        switch(data.type) {
+            case "playerJoined":
+
+                onPlayerJoined(data.username, data.score);
+                break;
+            case "playerLeft":
+                // data.username
+                onPlayerLeft(data.username);
+                break;
+            case "move":
+                location.reload();
+                break;
+            case "respondTour":
+                if (data["username"]===myUsername){
+                    soldatBlocked=false;
+                } else {
+                    soldatBlocked=true;
+                }
+                break;
+            default:
+                console.warn("Type de message inconnu :", data.type);
+        }
+    }
+
+    // Mettre à jour l'interface quand un joueur rejoint
+    function onPlayerJoined(username, score) {
+        appendLog("Le joueur " + username + " a rejoint la partie. Score=" + score + ".");
+
+        // Ici, vous pourriez aussi mettre à jour votre grille, dessiner un pion, etc.
+    }
+
+    // Mettre à jour l'interface quand un joueur quitte
+    function onPlayerLeft(username) {
+        appendLog("Le joueur " + username + " a quitté la partie.");
+
+        // Ici, vous pourriez enlever le pion de la grille, etc.
+    }
+
+
+
+
+
+    initWebSocket();
+
+
+</script>
 
 
 <% if (session.getAttribute("askDestroyForest") != null && (Boolean) session.getAttribute("askDestroyForest")) {
     String forestPos = (String) session.getAttribute("forestPosition");
 %>
+
 <script>
 	if (confirm("Détruire la forêt en position <%= forestPos %> ?")) {
         window.location.href = "UpdatePositionServlet?action=destroyForest&position=<%= forestPos %>";
@@ -54,6 +159,7 @@ String soldierImage = (String) session.getAttribute("soldierImage");
                 alert('Mouvement bloqué : la montagne en position  n\'est pas franchissable.');
                 <% session.removeAttribute("showPopup"); // Supprime l'attribut après affichage %>
             <% } %>
+
         }
     </script>
 
@@ -123,11 +229,7 @@ if (userFilePath == null) {
             playerY = Integer.parseInt(positionParts[1]);
         }
   %>
-  <script>
-    function selectSoldat(soldatId) {
-        console.log("Soldat " + soldatId); // Affiche l'ID du soldat dans la console
-    }
-</script>
+
   
 <table border="1">
 <% 
@@ -203,8 +305,18 @@ window.selectedSoldatId = null;
 
 // Fonction appelée lorsqu'un soldat est cliqué
 function selectSoldat(soldatId) {
-    selectedSoldatId = soldatId;
-    alert("Soldat sélectionné ! ID : " + selectedSoldatId);
+    if(soldatBlocked){
+        alert("Ce n'est pas votre tour !");
+        return;
+    }
+
+    alert("Soldat sélectionné : " + soldatId);
+    window.selectedSoldatId = soldatId;
+
+
+
+
+
 }
 
 function moveSoldat(direction) {
@@ -221,6 +333,8 @@ function moveSoldat(direction) {
         .then(data => {
             if (data.success) {
                 console.log("Soldat déplacé !");
+                ws.send("{\"type\":\"move\",\"username\":\""+myUsername+"\"}");
+
                 location.reload(); // Recharge la carte après déplacement
             } else {
                 console.error("Erreur du serveur : ", data.message);

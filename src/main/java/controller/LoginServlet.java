@@ -55,14 +55,14 @@ public class LoginServlet extends HttpServlet {
                 if (userDetails != null) {
                     session.setAttribute("productionPoints", userDetails.getPointProduction());
                 
-                 // Récupérer et stocker l'image du soldat dans la session
+                 // Rï¿½cupï¿½rer et stocker l'image du soldat dans la session
                     session.setAttribute("soldierImage", userDetails.getSoldierImage());
                 
                 }
                 
 
                 // Chemin vers le dossier et le fichier CSV de l'utilisateur
-                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
+                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 String userFilePath = Paths.get(userDir, login + ".csv").toString();
 

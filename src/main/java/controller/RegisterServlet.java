@@ -41,20 +41,20 @@ public class RegisterServlet extends HttpServlet {
         try {
             // Check if the user already exists
             if (utable.checkUserExists(login)) {
-                request.setAttribute("error", "Le login est deja utilisé. Veuillez choisir un autre login.");
+                request.setAttribute("error", "Le login est deja utilisï¿½. Veuillez choisir un autre login.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 return;
             }
 
             // Assign an image to the new user
-            String soldierImage = assignSoldierImage(login); // Génère l'image pour l'utilisateur
-            newUser.setSoldierImage(soldierImage); // Associe l'image à l'utilisateur
+            String soldierImage = assignSoldierImage(login); // Gï¿½nï¿½re l'image pour l'utilisateur
+            newUser.setSoldierImage(soldierImage); // Associe l'image ï¿½ l'utilisateur
 
            
             // Add the new user
             if (utable.addUser(newUser)) {
                 // Create directory for the user
-                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
+                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 new File(userDir).mkdirs();
 
@@ -83,7 +83,7 @@ public class RegisterServlet extends HttpServlet {
     //test 
     private String assignSoldierImage(String username) {
         int hash = username.hashCode();
-        int index = Math.abs(hash % 4); // Limite à 5 images ou couleurs
+        int index = Math.abs(hash % 4); // Limite ï¿½ 5 images ou couleurs
         String[] images = {
             "images/soldats/soldat_bleu.jpg",
             "images/soldats/soldat_vert.jpg",

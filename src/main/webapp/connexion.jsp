@@ -11,7 +11,7 @@
 
 <h2>Connexion</h2>
 
-<!-- Afficher le message d'erreur si présent -->
+<!-- Afficher le message d'erreur si prï¿½sent -->
 <% if (request.getAttribute("error") != null) { %>
 <div style="color:red; font-size:16px;">
     <%= request.getAttribute("error") %>
@@ -69,7 +69,7 @@ window.onclick = function(event) {
     <div class="container">
    
       <label for="uname"><b>Prenom</b></label>
-      <input type="text" placeholder="Enter Username" name="prenom" required>
+      <input type="text" placeholder="Enter Name" name="prenom" required>
 
       <label for="email"><b>Username</b></label>
       <input type="text" placeholder="Enter Username" name="login" required>
