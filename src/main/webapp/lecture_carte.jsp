@@ -29,6 +29,7 @@
     let soldatBlocked=false;
     let ws;
     let myUsername = "<%= username %>";
+    let code="<%= session.getAttribute("code") %>";
 
     function appendLog(msg) {
 
@@ -37,7 +38,7 @@
 
     function initWebSocket() {
 
-        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername;
+        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername+"/"+code;
         ws = new WebSocket(url);
 
         ws.onopen = function() {
@@ -45,12 +46,18 @@
         };
 
         ws.onmessage = function(event) {
-            appendLog("[WS] Message reçu : " + event.data);
+
 
             // Tenter de parser le message JSON
             try {
+
                 let data = JSON.parse(event.data);
+                if(data.code!==code){
+                    return;
+                }
+                appendLog("[WS] Message reçu : " + event.data);
                 handleMessage(data);
+
 
 
             } catch(e) {
@@ -214,7 +221,7 @@ String soldierImage = (String) session.getAttribute("soldierImage");
     List<Soldat> soldats = soldatBDD.getAllSoldats();
     
 //charger le fichier csv
-String userFilePath = (String) session.getAttribute("userFilePath");
+String userFilePath = (String) session.getAttribute("gameFilePath");
 if (userFilePath == null) {
     out.println("<p>Erreur : Aucun fichier CSV associé à l'utilisateur.</p>");
 } else {

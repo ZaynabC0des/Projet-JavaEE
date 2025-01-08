@@ -159,12 +159,12 @@ img {
     transition: all 0.3s ease-in-out; /* Transition fluide pour les interactions */
 }
 
-/* Style général des boutons */
+/* Style gï¿½nï¿½ral des boutons */
 .button-container .custom-button {
     padding: 10px 20px; /* Taille du bouton */
-    font-family: 'PixelGame', 'Press Start 2P', monospace; /* Police de caractères */
+    font-family: 'PixelGame', 'Press Start 2P', monospace; /* Police de caractï¿½res */
     font-size: 14px; /* Taille de la police */
-    cursor: pointer; /* Curseur en forme de pointeur pour indiquer l'interactivité */
+    cursor: pointer; /* Curseur en forme de pointeur pour indiquer l'interactivitï¿½ */
     color: #fff; /* Couleur du texte */
     background-color: #333; /* Couleur de fond du bouton */
     border: 2px solid #fff; /* Bordure blanche */
@@ -282,3 +282,5 @@ img {
 .player-profile p {
     margin-bottom: 10px;
 }
+
+

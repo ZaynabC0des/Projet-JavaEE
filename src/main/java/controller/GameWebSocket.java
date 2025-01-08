@@ -17,25 +17,27 @@ class PlayerInfo {
     String username;
     int score;
     Integer soldatId;
+    String code;
 
 
-    public PlayerInfo(String username, int score, Integer soldatId) {
+    public PlayerInfo(String username, int score, Integer soldatId, String code) {
         this.username = username;
         this.score = score;
         this.soldatId= soldatId;
+        this.code=code;
     }
 }
 
-@ServerEndpoint(value = "/game/{username}")
+@ServerEndpoint(value = "/game/{username}/{code}")
 public class GameWebSocket {
 
     // On stocke tous les joueurs connectés
-    private static Map<Session, PlayerInfo> players = new ConcurrentHashMap<>();
+    private static final Map<Session, PlayerInfo> players = new ConcurrentHashMap<>();
     private static PlayerInfo playerTour=null;
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) {
-        PlayerInfo player = new PlayerInfo(username, 0,0);
+    public void onOpen(Session session, @PathParam("username") String username, @PathParam("code") String code) {
+        PlayerInfo player = new PlayerInfo(username, 0,0,code);
         players.put(session, player);
         if(playerTour==null){
             playerTour=player;
@@ -67,7 +69,7 @@ public class GameWebSocket {
             case "move":
                 if(players.size()!=1) {
                     if (playerTour.username.equals(player.username)) {
-                        playerTour = players.values().stream().filter(p -> !p.username.equals(player.username)).findFirst().get();
+                        playerTour = players.values().stream().filter(p -> (!p.username.equals(player.username) &&(p.code.equals(player.code)))).findFirst().get();
                     } else {
                         return;
                     }
@@ -99,31 +101,31 @@ public class GameWebSocket {
 
     private void respondTour(Session session) throws IOException {
         String json = String.format(
-                "{\"type\":\"respondTour\",\"username\":\"%s\"}",playerTour.username
+                "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playerTour.username,playerTour.code
         );
         session.getBasicRemote().sendText(json);
     }
 
     private void broadcastDestroyForest(PlayerInfo player, int idForet){
         String json = String.format(
-                "{\"type\":\"destroyForest\",\"username\":\"%s\",\"soldatId\":%d,\"foretId\":%d}",
-                player.username, player.soldatId,idForet
+                "{\"type\":\"destroyForest\",\"username\":\"%s\",\"soldatId\":%d,\"foretId\":%d,\"code\":\"%s\"}",
+                player.username, player.soldatId,idForet,player.code
         );
         broadcastMessage(json);
     }
 
     private void broadcastCombatVille(PlayerInfo player, int idVille){
         String json = String.format(
-                "{\"type\":\"combatVille\",\"username\":\"%s\",\"soldatId\":%d,\"villeId\":%d}",
-                player.username, player.soldatId, idVille
+                "{\"type\":\"combatVille\",\"username\":\"%s\",\"soldatId\":%d,\"villeId\":%d,\"code\":\"%s\"}",
+                player.username, player.soldatId, idVille,player.code
         );
         broadcastMessage(json);
     }
 
     private void broadcastCombatSoldat(PlayerInfo player, int idSoldat){
         String json = String.format(
-                "{\"type\":\"combatSoldat\",\"username\":\"%s\",\"soldatId\":%d,\"soldatEnnemiId\":%d}",
-                player.username, player.soldatId,idSoldat
+                "{\"type\":\"combatSoldat\",\"username\":\"%s\",\"soldatId\":%d,\"soldatEnnemiId\":%d,\"code\":\"%s\"}",
+                player.username, player.soldatId,idSoldat,player.code
         );
         broadcastMessage(json);
     }
@@ -133,8 +135,8 @@ public class GameWebSocket {
      */
     private void broadcastPlayerJoined(PlayerInfo player) {
         String json = String.format(
-                "{\"type\":\"playerJoined\",\"username\":\"%s\",\"score\":%d}",
-                player.username, player.score
+                "{\"type\":\"playerJoined\",\"username\":\"%s\",\"score\":%d,\"code\":\"%s\"}",
+                player.username, player.score,player.code
         );
         broadcastMessage(json);
     }
@@ -144,16 +146,16 @@ public class GameWebSocket {
      */
     private void broadcastPlayerLeft(PlayerInfo player) {
         String json = String.format(
-                "{\"type\":\"playerLeft\",\"username\":\"%s\"}",
-                player.username
+                "{\"type\":\"playerLeft\",\"username\":\"%s\",\"code\":\"%s\"}",
+                player.username,player.code
         );
         broadcastMessage(json);
     }
 
     private void broadcastSoldierMoved(PlayerInfo player) {
         String json = String.format(
-                "{\"type\":\"move\",\"username\":\"%s\",\"soldatId\":%d}",
-                player.username, player.soldatId
+                "{\"type\":\"move\",\"username\":\"%s\",\"soldatId\":%d,\"code\":\"%s\"}",
+                player.username, player.soldatId,player.code
         );
         broadcastMessage(json);
     }

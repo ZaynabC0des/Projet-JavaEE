@@ -59,49 +59,7 @@ public class LoginServlet extends HttpServlet {
                     session.setAttribute("soldierImage", userDetails.getSoldierImage());
                 
                 }
-                
-
-                // Chemin vers le dossier et le fichier CSV de l'utilisateur
-                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
-                String userDir = Paths.get(baseDir, login).toString();
-                String userFilePath = Paths.get(userDir, login + ".csv").toString();
-
-                if (new File(userFilePath).exists()) {
-                    session.setAttribute("userFilePath", userFilePath);
-
-                    try {
-                        // 1) Initialiser la grille
-                        int[][] grille = initializeGrid(userFilePath);
-                        session.setAttribute("grille", grille);
-
-                        // 2) Initialiser les villes dans la base de donn�es
-                        VilleBDD villeBDD = new VilleBDD();
-                        villeBDD.initializeCities(userFilePath);
-
-                     // Initialiser les for�ts dans la base de donn�es
-                        ForetBDD foretBDD = new ForetBDD();
-                        foretBDD.initializeTree(userFilePath);
-                        
-                        // Rediriger vers la page de lecture de la carte
-                        response.sendRedirect("lecture_carte.jsp");
-                        
-                    } catch (IOException e) {
-                        System.out.println("Erreur lors de l'initialisation de la grille : " + e.getMessage());
-                        request.setAttribute("error", 
-                            "Erreur lors de l'initialisation de la carte : " + e.getMessage());
-                        request.getRequestDispatcher("connexion.jsp").forward(request, response);
-                    } catch (SQLException e) {
-                        System.out.println("Erreur lors de l'initialisation des villes dans la BDD : " 
-                            + e.getMessage());
-                        request.setAttribute("error", 
-                            "Erreur lors de l'initialisation des villes dans la BDD : " + e.getMessage());
-                        request.getRequestDispatcher("connexion.jsp").forward(request, response);
-                    }
-
-                } else {
-                    request.setAttribute("error", "Fichier CSV non trouv�.");
-                    request.getRequestDispatcher("connexion.jsp").forward(request, response);
-                }
+                response.sendRedirect("session.jsp");
             } else {
                 request.setAttribute("error", "Identifiants incorrects ou utilisateur non trouv�.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
@@ -115,26 +73,6 @@ public class LoginServlet extends HttpServlet {
         }
     }
 
-    /**
-     * M�thode pour lire le fichier CSV et initialiser la grille.
-     * @param filePath Chemin vers le fichier CSV
-     * @return Grille sous forme de tableau 2D d'entiers
-     * @throws IOException En cas d'erreur de lecture du fichier
-     */
-    private int[][] initializeGrid(String filePath) throws IOException {
-        List<int[]> tempGrid = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                int[] row = new int[values.length];
-                for (int i = 0; i < values.length; i++) {
-                    row[i] = Integer.parseInt(values[i].trim());
-                }
-                tempGrid.add(row);
-            }
-        }
-        // Convertir la liste temporaire en tableau 2D
-        return tempGrid.toArray(new int[tempGrid.size()][]);
-    }
+
+
 }

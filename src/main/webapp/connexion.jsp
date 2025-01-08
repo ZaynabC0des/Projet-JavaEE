@@ -8,6 +8,7 @@
 <title>Connexion</title>
 </head>
 <body>
+<h1 class="game-title-bg">4X GAME</h1>
 
 <h2>Connexion</h2>
 
