@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import model.Soldat;
 import model.SoldatBDD;
 import model.UserBDD;
+import controller.GameWebSocket;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -24,6 +25,12 @@ public class RecruitSoldierServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
         String userLogin = (String) session.getAttribute("userLogin");
+
+        if(!GameWebSocket.playerTour.username.equals(userLogin)){
+            System.out.println("Erreur : Ce n'est pas le tour de ce joueur.");
+            response.sendRedirect("lecture_carte.jsp");
+            return;
+        }
 
         if (userLogin == null || userLogin.isEmpty()) {
             System.out.println("Erreur : L'utilisateur n'est pas authentifié ou le login est invalide.");
@@ -79,9 +86,17 @@ public class RecruitSoldierServlet extends HttpServlet {
                 
 
                 // Ajouter le soldat à la base de données avec ses coordonnées
-                int soldatId = soldatBDD.ajouterSoldatEtRecupererId(userLogin, 100, x, y);
+                int soldatId = soldatBDD.ajouterSoldatEtRecupererId(userLogin, 100, x, y,(String)session.getAttribute("code"));
+
                 if (soldatId != -1) {
-                	
+                    String json = String.format(
+                            "{\"type\":\"move\",\"username\":\"%s\",\"soldatId\":%d,\"code\":\"%s\"}",
+                            userLogin, soldatId,session.getAttribute("code")
+                    );
+                    GameWebSocket.broadcastMessage(json);
+                    if(GameWebSocket.players.size()>1){
+                        GameWebSocket.playerTour=GameWebSocket.players.values().stream().filter(p -> (!p.username.equals(userLogin) &&(p.code.equals(session.getAttribute("code"))))).findFirst().get();
+                    }
                     // Mettre à jour la grille
                     grille[x][y] = 4; // 4 représente un soldat
                     session.setAttribute("grille", grille);

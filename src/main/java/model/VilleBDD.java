@@ -8,10 +8,12 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VilleBDD {
 
-	private Connection initConnection1() {
+    private Connection initConnection1() {
         String url = "jdbc:mysql://localhost:3306/projet_jee";
         String user = "root";
         String password = "";
@@ -22,8 +24,8 @@ public class VilleBDD {
             return null;
         }
     }
-	
-    // M�thode pour initialiser les villes � partir d'un fichier CSV
+
+    // Mï¿½thode pour initialiser les villes ï¿½ partir d'un fichier CSV
     public void initializeCities(String csvFilePath) throws IOException, SQLException {
         try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
             String line;
@@ -40,14 +42,14 @@ public class VilleBDD {
         }
     }
 
-    // M�thode pour ajouter une ville � la base de donn�es
+    // Mï¿½thode pour ajouter une ville ï¿½ la base de donnï¿½es
     private void ajouterVilleBDD(int x, int y, int defensePoints, String login_user) throws SQLException {
-    	 // V�rifie si la ville existe d�j� pour �viter les doublons
+        // Vï¿½rifie si la ville existe dï¿½jï¿½ pour ï¿½viter les doublons
         if (villeExiste(x, y)) {
-            System.out.println("Ville d�j� existante � la position (" + x + ", " + y + ")");
-            return; // Ville d�j� existante, donc on ne fait rien
+            System.out.println("Ville dï¿½jï¿½ existante ï¿½ la position (" + x + ", " + y + ")");
+            return; // Ville dï¿½jï¿½ existante, donc on ne fait rien
         }
-        
+
         String sql = "INSERT INTO ville (x_position, y_position, point_defense, id_user) VALUES (?, ?, ?, ?)";
         try (Connection conn = initConnection1();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -64,18 +66,18 @@ public class VilleBDD {
     }
 
 
-private boolean villeExiste(int x, int y) throws SQLException {
-    String sql = "SELECT 1 FROM ville WHERE x_position = ? AND y_position = ?";
-    try (Connection conn = initConnection1();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-        pstmt.setInt(1, x);
-        pstmt.setInt(2, y);
-        try (ResultSet rs = pstmt.executeQuery()) {
-            return rs.next();  // Retourne vrai si une ligne est trouv�e, donc la ville existe d�j�
+    private boolean villeExiste(int x, int y) throws SQLException {
+        String sql = "SELECT 1 FROM ville WHERE x_position = ? AND y_position = ?";
+        try (Connection conn = initConnection1();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, x);
+            pstmt.setInt(2, y);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();  // Retourne vrai si une ligne est trouvï¿½e, donc la ville existe dï¿½jï¿½
+            }
         }
     }
-}
-    // M�thode pour r�cup�rer le propri�taire de la ville � une position sp�cifique
+    // Mï¿½thode pour rï¿½cupï¿½rer le propriï¿½taire de la ville ï¿½ une position spï¿½cifique
     public String getCityOwner(int x, int y) throws SQLException {
         String sql = "SELECT id_user FROM ville WHERE x_position = ? AND y_position = ?";
         try (Connection conn = initConnection1();
@@ -88,10 +90,10 @@ private boolean villeExiste(int x, int y) throws SQLException {
                 }
             }
         }
-        return null;  // Retourne null si la ville n'a pas de propri�taire
+        return null;  // Retourne null si la ville n'a pas de propriï¿½taire
     }
-    
-    // M�thode pour mettre � jour les points de production d'un utilisateur
+
+    // Mï¿½thode pour mettre ï¿½ jour les points de production d'un utilisateur
     public void mettreAJourPointsDeProduction(String userLogin, int pointsToAdd) throws SQLException {
         String sql = "UPDATE users SET production_points = production_points + ? WHERE login = ?";
         try (Connection conn = initConnection1();
@@ -101,7 +103,7 @@ private boolean villeExiste(int x, int y) throws SQLException {
             pstmt.executeUpdate();
         }
     }
-    
+
     public int getCityDefensePoints(int x, int y) throws SQLException {
         String sql = "SELECT point_defense FROM ville WHERE x_position = ? AND y_position = ?";
         try (Connection conn = initConnection1();
@@ -114,15 +116,90 @@ private boolean villeExiste(int x, int y) throws SQLException {
                 }
             }
         }
-        return 0; // Retourne 0 si aucun point de d�fense n'est trouv�
+        return 0; // Retourne 0 si aucun point de dï¿½fense n'est trouvï¿½
     }
 
-    
-    
-    
-    
-    
-    
+
+    public void updateCityOwner(int x, int y, String newOwnerLogin) throws SQLException {
+        String sql = "UPDATE ville SET id_user = ? WHERE x_position = ? AND y_position = ?";
+        try (Connection conn = initConnection1(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, newOwnerLogin);
+            pstmt.setInt(2, x);
+            pstmt.setInt(3, y);
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows > 0) {
+                System.out.println("Le propriÃ©taire de la ville a Ã©tÃ© mis Ã  jour avec succÃ¨s.");
+            } else {
+                System.out.println("Aucune ville n'a Ã©tÃ© mise Ã  jour.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la mise Ã  jour du propriÃ©taire de la ville : " + e.getMessage());
+            throw e;
+        }
     }
+
+    public void updateDefensePoints(int x, int y, int newDefensePoints) throws SQLException {
+        String query = "UPDATE ville SET point_defense = ? WHERE x_position = ? AND y_position = ?";
+        try (Connection conn = initConnection1();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, newDefensePoints);
+            stmt.setInt(2, x);
+            stmt.setInt(3, y);
+            stmt.executeUpdate();
+        }
+    }
+    public void updateDefensePointsAndOwner(int x, int y, int newDefensePoints, String attackerLogin) throws SQLException {
+        String query = "UPDATE ville SET point_defense = ?, id_user = CASE WHEN ? = 0 THEN ? ELSE id_user END WHERE x_position = ? AND y_position = ?";
+        try (Connection conn = initConnection1();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, newDefensePoints);
+            stmt.setInt(2, newDefensePoints);
+            stmt.setString(3, attackerLogin);
+            stmt.setInt(4, x);
+            stmt.setInt(5, y);
+            stmt.executeUpdate();
+        }
+    }
+    public Ville getCityByPosition(int x, int y) throws SQLException {
+        String sql = "SELECT id_ville, x_position, y_position, point_defense, id_user FROM ville WHERE x_position = ? AND y_position = ?";
+        try (Connection conn = initConnection1();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, x);
+            pstmt.setInt(2, y);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Ville ville = new Ville();
+                    ville.setId(rs.getString("id_ville"));
+                    ville.setPositionX(rs.getInt("x_position"));
+                    ville.setPositionY(rs.getInt("y_position"));
+                    ville.setDefensePoints(rs.getInt("point_defense"));
+                    ville.setOwner(rs.getString("id_user"));
+                    return ville;
+                }
+            }
+        }
+        return null; // Retourne null si aucune ville n'est trouvÃ©e
+    }
+
+
+    public List<int[]> getAllCitiesPositions(String userLogin) throws SQLException {
+        String query = "SELECT x_position, y_position FROM ville WHERE id_user = ?";
+        List<int[]> positions = new ArrayList<>();
+        try (Connection conn = initConnection1();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, userLogin);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int x = rs.getInt("x_position");
+                    int y = rs.getInt("y_position");
+                    positions.add(new int[]{x, y});
+                }
+            }
+        }
+        return positions;
+    }
+
+
+}
 
 

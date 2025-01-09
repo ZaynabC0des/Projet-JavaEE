@@ -41,51 +41,44 @@ public class SessionServlet extends HttpServlet {
             // Rejoindre une session existante
             String code = request.getParameter("code");
 
-            String sessionDetails = GameSession.joinSession(code);
+            //String sessionDetails = GameSession.joinSession(code);
             HttpSession session = request.getSession();
             session.setAttribute("code", code);
 
-            if (sessionDetails != null) {
+
                 // Chemin vers le dossier et le fichier CSV de l'utilisateur
                
 
-                if (new File("H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv\\"+code+".csv").exists()) {
-                    String gameFilePath = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv\\"+code+".csv";
-                    session.setAttribute("gameFilePath", gameFilePath);
+            if (new File("H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv\\"+code+".csv").exists()) {
+                String gameFilePath = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv\\"+code+".csv";
+                session.setAttribute("gameFilePath", gameFilePath);
         
-                    try {
-                        // 1) Initialiser la grille
-                        int[][] grille = initializeGrid(gameFilePath);
-                        session.setAttribute("grille", grille);
+                try {
+                    // 1) Initialiser la grille
+                    int[][] grille = initializeGrid(gameFilePath);
+                    session.setAttribute("grille", grille);
 
-                        // 2) Initialiser les villes dans la base de donn�es
-                        VilleBDD villeBDD = new VilleBDD();
-                        villeBDD.initializeCities(gameFilePath);
+                    // 2) Initialiser les villes dans la base de donn�es
+                    VilleBDD villeBDD = new VilleBDD();
+                    villeBDD.initializeCities(gameFilePath);
 
-                        // Initialiser les for�ts dans la base de donn�es
-                        ForetBDD foretBDD = new ForetBDD();
-                        foretBDD.initializeTree(gameFilePath);
+                    // Rediriger vers la page de lecture de la carte
+                    response.sendRedirect("lecture_carte.jsp");
 
-                        // Rediriger vers la page de lecture de la carte
-                        response.sendRedirect("lecture_carte.jsp");
-
-                    } catch (IOException e) {
-                        System.out.println("Erreur lors de l'initialisation de la grille : " + e.getMessage());
-                        request.setAttribute("error",
-                                "Erreur lors de l'initialisation de la carte : " + e.getMessage());
-                        request.getRequestDispatcher("connexion.jsp").forward(request, response);
-                    } catch (SQLException e) {
-                        System.out.println("Erreur lors de l'initialisation des villes dans la BDD : "
-                                + e.getMessage());
-                        request.setAttribute("error",
-                                "Erreur lors de l'initialisation des villes dans la BDD : " + e.getMessage());
-                        request.getRequestDispatcher("connexion.jsp").forward(request, response);
-                    }
-
-                } else {
-                    request.setAttribute("error", "Fichier CSV non trouv�.");
+                } catch (IOException e) {
+                    System.out.println("Erreur lors de l'initialisation de la grille : " + e.getMessage());
+                    request.setAttribute("error",
+                            "Erreur lors de l'initialisation de la carte : " + e.getMessage());
+                    request.getRequestDispatcher("connexion.jsp").forward(request, response);
+                } catch (SQLException e) {
+                    System.out.println("Erreur lors de l'initialisation des villes dans la BDD : "
+                            + e.getMessage());
+                    request.setAttribute("error",
+                            "Erreur lors de l'initialisation des villes dans la BDD : " + e.getMessage());
                     request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 }
+
+
             } else {
                 response.getWriter().write("Code de session invalide !");
             }

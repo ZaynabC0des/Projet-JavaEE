@@ -16,14 +16,12 @@ import org.json.*;
 class PlayerInfo {
     String username;
     int score;
-    Integer soldatId;
     String code;
 
 
-    public PlayerInfo(String username, int score, Integer soldatId, String code) {
+    public PlayerInfo(String username, int score, String code) {
         this.username = username;
         this.score = score;
-        this.soldatId= soldatId;
         this.code=code;
     }
 }
@@ -32,12 +30,12 @@ class PlayerInfo {
 public class GameWebSocket {
 
     // On stocke tous les joueurs connectés
-    private static final Map<Session, PlayerInfo> players = new ConcurrentHashMap<>();
-    private static PlayerInfo playerTour=null;
+    public static final Map<Session, PlayerInfo> players = new ConcurrentHashMap<>();
+    public static PlayerInfo playerTour=null;
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username, @PathParam("code") String code) {
-        PlayerInfo player = new PlayerInfo(username, 0,0,code);
+        PlayerInfo player = new PlayerInfo(username, 0,code);
         players.put(session, player);
         if(playerTour==null){
             playerTour=player;
@@ -51,6 +49,9 @@ public class GameWebSocket {
     @OnClose
     public void onClose(Session session) {
         PlayerInfo leavingPlayer = players.remove(session);
+        //if (playerTour.username.equals(leavingPlayer.username)) {
+           // playerTour = players.values().stream().filter(p -> (!p.username.equals(leavingPlayer.username) &&(p.code.equals(leavingPlayer.code)))).findFirst().get();
+        //}
         if (leavingPlayer != null) {
             System.out.println("[WebSocket] Joueur déconnecté : " + leavingPlayer.username);
             broadcastPlayerLeft(leavingPlayer);
@@ -77,16 +78,16 @@ public class GameWebSocket {
                     playerTour=player;
                 }
 
-                broadcastSoldierMoved(player);
+                broadcastSoldierMoved(player, json.getInt("soldatId"));
                 break;
             case "combatVille":
-                broadcastCombatVille(player,json.getInt("idVille"));
+                broadcastCombatVille(player,json.getInt("idVille"),json.getInt("soldatId"));
                 break;
             case "combatSoldat":
-                broadcastCombatSoldat(player,json.getInt("idSoldat"));
+                broadcastCombatSoldat(player,json.getInt("idSoldat"),json.getInt("SoldatId"));
                 break;
             case "destroyForest":
-                broadcastDestroyForest(player,json.getInt("idForet"));
+                broadcastDestroyForest(player,json.getInt("idForet"),json.getInt("soldatId"));
                 break;
             case "askTour":
                 respondTour(session);
@@ -99,33 +100,33 @@ public class GameWebSocket {
 
     }
 
-    private void respondTour(Session session) throws IOException {
+    public static void respondTour(Session session) throws IOException {
         String json = String.format(
                 "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playerTour.username,playerTour.code
         );
         session.getBasicRemote().sendText(json);
     }
 
-    private void broadcastDestroyForest(PlayerInfo player, int idForet){
+    public static void broadcastDestroyForest(PlayerInfo player, int soldatId,int idForet){
         String json = String.format(
                 "{\"type\":\"destroyForest\",\"username\":\"%s\",\"soldatId\":%d,\"foretId\":%d,\"code\":\"%s\"}",
-                player.username, player.soldatId,idForet,player.code
+                player.username, soldatId,idForet,player.code
         );
         broadcastMessage(json);
     }
 
-    private void broadcastCombatVille(PlayerInfo player, int idVille){
+    public static void broadcastCombatVille(PlayerInfo player,int soldatId, int idVille){
         String json = String.format(
                 "{\"type\":\"combatVille\",\"username\":\"%s\",\"soldatId\":%d,\"villeId\":%d,\"code\":\"%s\"}",
-                player.username, player.soldatId, idVille,player.code
+                player.username, soldatId, idVille,player.code
         );
         broadcastMessage(json);
     }
 
-    private void broadcastCombatSoldat(PlayerInfo player, int idSoldat){
+    public static void broadcastCombatSoldat(PlayerInfo player,int soldatId, int idSoldat){
         String json = String.format(
                 "{\"type\":\"combatSoldat\",\"username\":\"%s\",\"soldatId\":%d,\"soldatEnnemiId\":%d,\"code\":\"%s\"}",
-                player.username, player.soldatId,idSoldat,player.code
+                player.username, soldatId,idSoldat,player.code
         );
         broadcastMessage(json);
     }
@@ -133,7 +134,7 @@ public class GameWebSocket {
     /**
      * Diffuse l'événement "playerJoined" à toutes les sessions.
      */
-    private void broadcastPlayerJoined(PlayerInfo player) {
+    public static void broadcastPlayerJoined(PlayerInfo player) {
         String json = String.format(
                 "{\"type\":\"playerJoined\",\"username\":\"%s\",\"score\":%d,\"code\":\"%s\"}",
                 player.username, player.score,player.code
@@ -144,7 +145,8 @@ public class GameWebSocket {
     /**
      * Diffuse l'événement "playerLeft" à tous.
      */
-    private void broadcastPlayerLeft(PlayerInfo player) {
+    public static void broadcastPlayerLeft(PlayerInfo player) {
+
         String json = String.format(
                 "{\"type\":\"playerLeft\",\"username\":\"%s\",\"code\":\"%s\"}",
                 player.username,player.code
@@ -152,10 +154,10 @@ public class GameWebSocket {
         broadcastMessage(json);
     }
 
-    private void broadcastSoldierMoved(PlayerInfo player) {
+    public static void broadcastSoldierMoved(PlayerInfo player, int soldatId) {
         String json = String.format(
                 "{\"type\":\"move\",\"username\":\"%s\",\"soldatId\":%d,\"code\":\"%s\"}",
-                player.username, player.soldatId,player.code
+                player.username, soldatId,player.code
         );
         broadcastMessage(json);
     }
@@ -163,7 +165,7 @@ public class GameWebSocket {
     /**
      * Diffuse un message JSON à tous les clients connectés.
      */
-    public void broadcastMessage(String message) {
+    public static void broadcastMessage(String message) {
         players.keySet().forEach(session -> {
             if (session.isOpen()) {
                 try {

@@ -33,6 +33,7 @@ public class GameSession {
 
     // Rejoint une session via un code
     public static String joinSession(String code) {
+
         return sessions.getOrDefault(code, null);
     }
 
@@ -43,13 +44,28 @@ public class GameSession {
 
 
     public static void generateRandomMap(String code) throws IOException {
-        String filePath = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv\\" + code + ".csv";
+        String filePath = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv" + code + ".csv";
+        int maxMountains = 8; // Nombre maximum de montagnes
+        int mountainCount = 0; // Compteur pour les montagnes
+
         try (FileWriter writer = new FileWriter(filePath)) {
             // Générer un tableau 10x10 avec des valeurs aléatoires entre 0 et 3
             for (int row = 0; row < 10; row++) {
                 StringBuilder line = new StringBuilder();
                 for (int col = 0; col < 10; col++) {
-                    int value = random.nextInt(4); // Génère un nombre entre 0 et 3
+                    int value;
+
+                    if (mountainCount < maxMountains) {
+                        // Génère un nombre entre 0 et 3, mais limite les montagnes (3)
+                        value = random.nextInt(4); // Nombre aléatoire entre 0 et 3
+                        if (value == 3) {
+                            mountainCount++;
+                        }
+                    } else {
+                        // Une fois la limite atteinte, générer uniquement des nombres entre 0 et 2
+                        value = random.nextInt(3); // Nombre aléatoire entre 0 et 2
+                    }
+
                     line.append(value);
                     if (col < 9) {
                         line.append(","); // Ajouter une virgule entre les colonnes
@@ -60,5 +76,4 @@ public class GameSession {
             }
         }
     }
-
 }

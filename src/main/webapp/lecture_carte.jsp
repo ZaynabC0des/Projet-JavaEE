@@ -1,7 +1,6 @@
 <%@ page import="model.TuileType" %>
 <%@ page import="java.io.*" %>  <!-- Importation de HttpSession -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<script src="js/gameControls.js"></script> 
 <script src="js/modalControls.js"></script> 
 <script src="js/moveSoldat.js"></script> 
 <link rel="stylesheet" type="text/css" href="css/combat.css">
@@ -12,6 +11,7 @@
 <%@ page import="model.Soldat, model.SoldatBDD" %>
 <%@ page import="controller.GameWebSocket" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.sql.SQLException" %>
 
 <%@ page session="true" %>
 <%
@@ -104,20 +104,13 @@
     function onPlayerJoined(username, score) {
         appendLog("Le joueur " + username + " a rejoint la partie. Score=" + score + ".");
 
-        // Ici, vous pourriez aussi mettre à jour votre grille, dessiner un pion, etc.
     }
 
     // Mettre à jour l'interface quand un joueur quitte
     function onPlayerLeft(username) {
         appendLog("Le joueur " + username + " a quitté la partie.");
 
-        // Ici, vous pourriez enlever le pion de la grille, etc.
     }
-
-
-
-
-
     initWebSocket();
 
 
@@ -149,8 +142,6 @@ String soldierImage = (String) session.getAttribute("soldierImage");
 %>
 <img src="<%= soldierImage %>" alt="Soldat" class="soldier-image">
 
-
-<img src="images/<%= soldierImage %>" alt="Soldat" class="soldier-image">
 
 <script>
         window.onload = function() {
@@ -189,24 +180,20 @@ String soldierImage = (String) session.getAttribute("soldierImage");
     </div>
 </div>
 
-<p>Position actuelle du joueur : <%= session.getAttribute("playerPosition") %></p>
 
-<div class="movement-controls">
-    <button onclick="movePlayer('up')">Haut</button>
-    <button onclick="movePlayer('down')">Bas</button>
-    <button onclick="movePlayer('left')">Gauche</button>
-    <button onclick="movePlayer('right')">Droite</button>
-</div>
 
 <% 
     Boolean canRecruit = (Boolean) session.getAttribute("canRecruit");
+    canRecruit=true;
     if (canRecruit != null && canRecruit) {
+
 %>
       <div class="button-container">
         <form action="RecruitSoldierServlet" method="POST">
-            <button type="submit" class="custom-button">Recruter un soldat</button>
+            <button type="submit" id="recruitSoldier" class="custom-button">Recruter un soldat</button>
         </form>
     </div>
+
 <% 
     } 
 %>
@@ -217,9 +204,14 @@ String soldierImage = (String) session.getAttribute("soldierImage");
 //Charger les soldats du joueur
     SoldatBDD soldatBDD = new SoldatBDD();
     String userLogin = (String) session.getAttribute("userLogin");
-   
-    List<Soldat> soldats = soldatBDD.getAllSoldats();
-    
+
+    List<Soldat> soldats = null;
+    try {
+        soldats = soldatBDD.getAllSoldats((String)session.getAttribute("code"));
+    } catch (SQLException e) {
+        throw new RuntimeException(e);
+    }
+
 //charger le fichier csv
 String userFilePath = (String) session.getAttribute("gameFilePath");
 if (userFilePath == null) {
@@ -228,6 +220,7 @@ if (userFilePath == null) {
     File csvFile = new File(userFilePath);
     if (csvFile.exists()){
     	 // Récupérer la position actuelle du joueur
+        /*
         String playerPosition = (String) session.getAttribute("playerPosition");
         int playerX = 0, playerY = 0;
         if (playerPosition != null) {
@@ -235,6 +228,8 @@ if (userFilePath == null) {
             playerX = Integer.parseInt(positionParts[0]);
             playerY = Integer.parseInt(positionParts[1]);
         }
+        */
+
   %>
 
   
@@ -259,13 +254,15 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
                     break; // Arrêtez la boucle dès que le soldat est trouvé
                 }
             }
-
+            /*
             // Ajouter "J1" si c'est la position du joueur
             if (rowNum == playerX && colNum == playerY) {
                 out.println("<td>J1</td>");
-            } 
+            }
+            */
+
             
-            else if (currentSoldat != null) {
+            if (currentSoldat != null) {
                 // Afficher un soldat
                 out.println("<td style='position: relative;'>");
                 out.println("<img src='" + request.getContextPath() + "/images/tuiles/vide.png' style='width: 50px; height: 50px; position: absolute;'>");
@@ -340,7 +337,7 @@ function moveSoldat(direction) {
         .then(data => {
             if (data.success) {
                 console.log("Soldat déplacé !");
-                ws.send("{\"type\":\"move\",\"username\":\""+myUsername+"\"}");
+                ws.send("{\"type\":\"move\",\"username\":\""+myUsername+"\",\"soldatId\":"+window.selectedSoldatId+"}");
 
                 location.reload(); // Recharge la carte après déplacement
             } else {

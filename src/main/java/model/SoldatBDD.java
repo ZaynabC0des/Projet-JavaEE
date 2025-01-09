@@ -23,8 +23,8 @@ public class SoldatBDD {
     }
 
     // Ajouter un soldat
-    public int ajouterSoldatEtRecupererId(String login, int pointDeVie, int x, int y) {
-        String sql = "INSERT INTO soldat (login_user, point_de_vie, x_position , y_position) VALUES (?, ?, ?, ?)";
+    public int ajouterSoldatEtRecupererId(String login, int pointDeVie, int x, int y,String code) {
+        String sql = "INSERT INTO soldat (login_user, point_de_vie, x_position , y_position,code) VALUES (?, ?, ?, ?,?)";
         try (Connection cnx = initConnection();
              PreparedStatement stmt = cnx.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
@@ -32,18 +32,19 @@ public class SoldatBDD {
             stmt.setInt(2, pointDeVie);
             stmt.setInt(3, x);
             stmt.setInt(4, y);
+            stmt.setString(5, code);
 
             int rowsInserted = stmt.executeUpdate();
             if (rowsInserted > 0) {
                 ResultSet generatedKeys = stmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1); // Retourne l'ID généré pour id_soldat
+                    return generatedKeys.getInt(1); // Retourne l'ID gï¿½nï¿½rï¿½ pour id_soldat
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1; // Retourne -1 en cas d'échec
+        return -1; // Retourne -1 en cas d'ï¿½chec
     }
 
     public boolean existeSoldatPosition(int x, int y) {
@@ -55,11 +56,11 @@ public class SoldatBDD {
             stmt.setInt(2, y);
 
             ResultSet rs = stmt.executeQuery();
-            return rs.next(); // Retourne vrai si une ligne est trouvée
+            return rs.next(); // Retourne vrai si une ligne est trouvï¿½e
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false; // En cas d'erreur, considérer qu'il n'y a pas de soldat
+        return false; // En cas d'erreur, considï¿½rer qu'il n'y a pas de soldat
     }
 
     // Obtenir tous les soldats d'un joueur
@@ -77,7 +78,7 @@ public class SoldatBDD {
         }
     }
 
-    // Mettre à jour les points de vie d'un soldat
+    // Mettre ï¿½ jour les points de vie d'un soldat
     public boolean updatePointsDeVie(int idSoldat, int newPoints) {
         String sql = "UPDATE soldat SET point_de_vie = ? WHERE id = ?";
         try (Connection cnx = initConnection();
@@ -129,7 +130,7 @@ public class SoldatBDD {
                 soldat.setY(rs.getInt("y_position"));
                 soldat.setPointDeVie(rs.getInt("point_de_vie"));
 
-                // Récupérer le chemin de l'image
+                // Rï¿½cupï¿½rer le chemin de l'image
                 String imagePath = rs.getString("soldierImage");
                 soldat.setImagePath(imagePath);
                
@@ -146,10 +147,10 @@ public class SoldatBDD {
         return soldats;
     }
     
-    public List<Soldat> getAllSoldats() throws SQLException {
+    public List<Soldat> getAllSoldats(String code) throws SQLException {
         String query = "SELECT s.id_soldat, s.x_position, s.y_position, s.point_de_vie, u.soldierImage " +
                        "FROM soldat s " +
-                       "JOIN user u ON s.login_user = u.login";
+                       "JOIN user u ON s.login_user = u.login WHERE s.code='" + code+"'";
         List<Soldat> soldats = new ArrayList<>();
         try (Connection conn = initConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
@@ -161,7 +162,7 @@ public class SoldatBDD {
                 soldat.setY(rs.getInt("y_position"));
                 soldat.setPointDeVie(rs.getInt("point_de_vie"));
 
-                // Récupérer le chemin de l'image
+                // Rï¿½cupï¿½rer le chemin de l'image
                 String imagePath = rs.getString("soldierImage");
                 soldat.setImagePath(imagePath);
 
@@ -191,7 +192,7 @@ public class SoldatBDD {
                 soldat.setX(rs.getInt("x_position"));
                 soldat.setY(rs.getInt("y_position"));
                 soldat.setPointDeVie(rs.getInt("point_de_vie"));
-                soldat.setOwner(rs.getString("login_user")); // Propriétaire du soldat
+                soldat.setOwner(rs.getString("login_user")); // Propriï¿½taire du soldat
                 return soldat;
             }
         }
