@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.security.MessageDigest;
 
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
@@ -35,26 +36,28 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
-        User newUser = new User(login, password);
+        // Hash the password
+        String hashedPassword = hashPassword(password);
+
+        User newUser = new User(login, hashedPassword);
         UserBDD utable = new UserBDD();
 
         try {
             // Check if the user already exists
             if (utable.checkUserExists(login)) {
-                request.setAttribute("error", "Le login est deja utilis�. Veuillez choisir un autre login.");
+                request.setAttribute("error", "Le login est déjà utilisé. Veuillez choisir un autre login.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 return;
             }
 
             // Assign an image to the new user
-            String soldierImage = assignSoldierImage(login); // G�n�re l'image pour l'utilisateur
-            newUser.setSoldierImage(soldierImage); // Associe l'image � l'utilisateur
+            String soldierImage = assignSoldierImage(login);
+            newUser.setSoldierImage(soldierImage);
 
-           
             // Add the new user
             if (utable.addUser(newUser)) {
                 // Create directory for the user
-                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
+                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 new File(userDir).mkdirs();
 
@@ -69,29 +72,44 @@ public class RegisterServlet extends HttpServlet {
                 // Redirect to another page after successful registration
                 response.sendRedirect("connexion.jsp");
             } else {
-                request.setAttribute("error", "L'inscription a �chou�. Erreur lors de l'ajout de l'utilisateur.");
+                request.setAttribute("error", "L'inscription a échoué. Erreur lors de l'ajout de l'utilisateur.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            request.setAttribute("error", "Erreur de syst�me: " + e.getMessage());
+            request.setAttribute("error", "Erreur de système: " + e.getMessage());
             request.getRequestDispatcher("connexion.jsp").forward(request, response);
         }
     }
-    
-    
-    //test 
+
+    // Method to hash a password using SHA-256
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+
+            // Convert bytes to hexadecimal format
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors du hachage du mot de passe", e);
+        }
+    }
+
     private String assignSoldierImage(String username) {
         int hash = username.hashCode();
-        int index = Math.abs(hash % 4); // Limite � 5 images ou couleurs
+        int index = Math.abs(hash % 4);
         String[] images = {
             "images/soldats/soldat_bleu.jpg",
             "images/soldats/soldat_vert.jpg",
             "images/soldats/soldat_rouge.jpg",
             "images/soldats/soldat_violet.jpg"
-           
         };
         return images[index];
     }
-
 }
