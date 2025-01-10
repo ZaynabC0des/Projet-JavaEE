@@ -182,21 +182,23 @@ String soldierImage = (String) session.getAttribute("soldierImage");
 
 
 
-<% 
-    Boolean canRecruit = (Boolean) session.getAttribute("canRecruit");
-    canRecruit=true;
-    if (canRecruit != null && canRecruit) {
-
-%>
-      <div class="button-container">
+    <div class="button-container">
         <form action="RecruitSoldierServlet" method="POST">
-            <button type="submit" id="recruitSoldier" class="custom-button">Recruter un soldat</button>
+            <button type="submit" class="custom-button">Recruter un soldat</button>
         </form>
     </div>
-
+    
 <% 
-    } 
+    String errorMessage = (String) session.getAttribute("errorMessage");
+    if (errorMessage != null) {
+    	System.out.println("Error Message: " + errorMessage); // Log pour vérifier
 %>
+    <p style="color: red;"><%= errorMessage %></p>
+<%
+        session.removeAttribute("errorMessage");  // Nettoyer après affichage
+    }
+%>
+
 
 
 <div class = "container">
