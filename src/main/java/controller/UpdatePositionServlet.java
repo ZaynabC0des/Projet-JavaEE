@@ -114,6 +114,7 @@ public class UpdatePositionServlet extends HttpServlet {
     private void checkProductionPoints(HttpSession session, User user) throws SQLException {
         UserBDD userBDD = new UserBDD();
         boolean canRecruit = userBDD.checkProductionPoints(user.getLogin());
+        System.out.println((canRecruit ? "Le joueur peut recruter un soldat." : "Le joueur ne peut pas recruter de soldat."));
         session.setAttribute("canRecruit", canRecruit); // Ajouter cette information dans la session
     }
 }
