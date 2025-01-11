@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static controller.GameWebSocket.currentPlayerIndex;
+
 @WebServlet("/RecruitSoldierServlet")
 public class RecruitSoldierServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -24,36 +26,11 @@ public class RecruitSoldierServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
-        String type=request.getParameter("type");
         String userLogin = (String) session.getAttribute("userLogin");
-        UserBDD userBDD = new UserBDD();
-        SoldatBDD soldatBDD = new SoldatBDD();
-        System.out.println("TEST: "+GameWebSocket.playerTour.username);
-        int nombreSoldats2 = 0;
-        try {
-            nombreSoldats2 = userBDD.compterSoldatsPossedesParUtilisateur(userLogin, (String)session.getAttribute("code"));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Nombre de soldats pour le joueur " + userLogin + ": " + nombreSoldats2);
-        System.out.println(GameWebSocket.playerTour.username.equals(userLogin));
-        try {
-            if (type.equals("start") && nombreSoldats2 != 0) {
-
-                response.sendRedirect("lecture_carte.jsp");
-                return;
-            }
-        }
-        catch (Exception e) {
-            System.out.println("");
-        }
 
 
-        if(nombreSoldats2==0){
-            System.out.println("");
-        }
-        else if(!GameWebSocket.playerTour.username.equals(userLogin)){
-            System.out.println("Erreur : Ce n'est pas le tour de ce joueur."+GameWebSocket.playerTour.username);
+        if(!GameWebSocket.playersOrder.get(currentPlayerIndex).username.equals(userLogin)){
+            System.out.println("Erreur : Ce n'est pas le tour de ce joueur."+GameWebSocket.playersOrder.get(currentPlayerIndex).username);
             response.sendRedirect("lecture_carte.jsp");
             return;
         }
@@ -64,12 +41,13 @@ public class RecruitSoldierServlet extends HttpServlet {
             return;
         }
 
-
+        UserBDD userBDD = new UserBDD();
+        SoldatBDD soldatBDD = new SoldatBDD();
         
         try {
             int currentPoints = userBDD.getProductionPoints(userLogin);
             System.out.println("Points de production pour le joueur " + userLogin + ": " + currentPoints);
-            if (currentPoints >= 15 || nombreSoldats2==0) {
+            if (currentPoints >= 15 ) {
                 int[][] grille = (int[][]) session.getAttribute("grille");
 
                 if (grille == null) {
@@ -110,21 +88,7 @@ public class RecruitSoldierServlet extends HttpServlet {
                     response.sendRedirect("lecture_carte.jsp");
                     return;
                 }
-                /*
-                // Choisir une position aléatoire
-                Random random = new Random();
-                int[] chosenPosition = emptyPositions.get(random.nextInt(emptyPositions.size()));
-                int x = chosenPosition[0];
-                int y = chosenPosition[1];
 
-
-             // Vérifier que la position est toujours vide dans la base de données
-                if (soldatBDD.existeSoldatPosition(x, y)) {
-                    System.out.println("Erreur : Une autre entité occupe déjà la position (" + x + ", " + y + ").");
-                    response.sendRedirect("lecture_carte.jsp");
-                    return;
-                }
-*/
 
                 // Ajouter le soldat à la base de données avec ses coordonnées
                 int soldatId = soldatBDD.ajouterSoldatEtRecupererId(userLogin, 100, x, y,(String)session.getAttribute("code"));
@@ -135,9 +99,9 @@ public class RecruitSoldierServlet extends HttpServlet {
                             userLogin, soldatId,session.getAttribute("code")
                     );
                     GameWebSocket.broadcastMessage(json);
-                    if(GameWebSocket.players.size()>1 && nombreSoldats2!=0){
+                    if(GameWebSocket.players.size()>1){
 
-                        GameWebSocket.playerTour=GameWebSocket.players.values().stream().filter(p -> (!p.username.equals(userLogin) &&(p.code.equals(session.getAttribute("code"))))).findFirst().get();
+                        GameWebSocket.nextTurn();
 
                     }
                     // Mettre à jour la grille
