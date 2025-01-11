@@ -38,7 +38,7 @@
 
     function initWebSocket() {
 
-        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername+"/"+code;
+        let url = "ws://192.168.249.171:8080/projet_war_exploded/game/" + myUsername+"/"+code;
         ws = new WebSocket(url);
 
         ws.onopen = function() {
@@ -113,7 +113,7 @@
     }
 
     initWebSocket();
-   
+
 
 
 </script>
