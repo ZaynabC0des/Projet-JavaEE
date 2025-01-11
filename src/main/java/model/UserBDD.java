@@ -14,11 +14,11 @@ public class UserBDD {
 	    String user = "root";
 	    String password = "";
 	    Connection cnx = null;
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
         try {
 	        cnx = DriverManager.getConnection(url, user, password);
 	    } catch (SQLException e) {

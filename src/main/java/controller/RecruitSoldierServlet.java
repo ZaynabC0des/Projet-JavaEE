@@ -14,6 +14,7 @@ import controller.GameWebSocket;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -65,6 +66,7 @@ public class RecruitSoldierServlet extends HttpServlet {
                         }
                     }
                 }
+                Collections.shuffle(emptyPositions, new Random(12845));
 
                 if (emptyPositions.isEmpty()) {
                     System.out.println("Erreur : Aucune case vide disponible pour positionner un soldat.");
