@@ -111,7 +111,9 @@
         appendLog("Le joueur " + username + " a quitté la partie.");
 
     }
+
     initWebSocket();
+   
 
 
 </script>
@@ -218,17 +220,9 @@ if (userFilePath == null) {
     out.println("<p>Erreur : Aucun fichier CSV associé à l'utilisateur.</p>");
 } else {
     File csvFile = new File(userFilePath);
-    if (csvFile.exists()){
-    	 // Récupérer la position actuelle du joueur
-        /*
-        String playerPosition = (String) session.getAttribute("playerPosition");
-        int playerX = 0, playerY = 0;
-        if (playerPosition != null) {
-            String[] positionParts = playerPosition.split(",");
-            playerX = Integer.parseInt(positionParts[0]);
-            playerY = Integer.parseInt(positionParts[1]);
-        }
-        */
+
+
+
 
   %>
 
@@ -254,12 +248,7 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
                     break; // Arrêtez la boucle dès que le soldat est trouvé
                 }
             }
-            /*
-            // Ajouter "J1" si c'est la position du joueur
-            if (rowNum == playerX && colNum == playerY) {
-                out.println("<td>J1</td>");
-            }
-            */
+
 
             
             if (currentSoldat != null) {
@@ -294,7 +283,7 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
     out.println("</table>");
     out.println("<p style='color:red;'>Erreur lors du chargement du fichier CSV : " + e.getMessage() + "</p>");
 }
-}
+
 }
 %>
 </table>

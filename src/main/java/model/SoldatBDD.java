@@ -47,13 +47,14 @@ public class SoldatBDD {
         return -1; // Retourne -1 en cas d'�chec
     }
 
-    public boolean existeSoldatPosition(int x, int y) {
-        String sql = "SELECT 1 FROM soldat WHERE x_position = ? AND y_position = ?";
+    public boolean existeSoldatPosition(int x, int y,String code) {
+        String sql = "SELECT 1 FROM soldat WHERE x_position = ? AND y_position = ? AND code= ?";
         try (Connection cnx = initConnection();
              PreparedStatement stmt = cnx.prepareStatement(sql)) {
 
             stmt.setInt(1, x);
             stmt.setInt(2, y);
+            stmt.setString(3, code);
 
             ResultSet rs = stmt.executeQuery();
             return rs.next(); // Retourne vrai si une ligne est trouv�e

@@ -113,10 +113,10 @@ public class UserBDD {
 	}
 
 	//level pour le joueur
-	public void updatePlayerLevel(String userLogin) throws SQLException {
+	public void updatePlayerLevel(String userLogin,String code) throws SQLException {
 		
 	    int villeCount = compterVillesPossedeesParUtilisateur(userLogin);
-	    int soldierCount = compterSoldatsPossedesParUtilisateur(userLogin);  // Assurez-vous d'avoir cette m�thode dans SoldatBDD
+	    int soldierCount = compterSoldatsPossedesParUtilisateur(userLogin,code);  // Assurez-vous d'avoir cette m�thode dans SoldatBDD
 
 	    System.out.println("Utilisateur " + userLogin + " poss�de " + villeCount + " ville(s) et " + soldierCount + " soldat(s).");
 	    
@@ -171,11 +171,12 @@ public class UserBDD {
         }
     }
     
-    public int compterSoldatsPossedesParUtilisateur(String userLogin) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM soldat WHERE login_user = ?";
+    public int compterSoldatsPossedesParUtilisateur(String userLogin,String code) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM soldat WHERE (login_user = ?) AND (code = ?)";
         try (Connection conn = this.init();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, userLogin);
+			pstmt.setString(2, code);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
