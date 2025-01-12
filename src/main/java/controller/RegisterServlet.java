@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.sql.SQLException;
 
 @WebServlet("/RegisterServlet")
@@ -34,7 +35,17 @@ public class RegisterServlet extends HttpServlet {
             request.getRequestDispatcher("connexion.jsp").forward(request, response);
             return;
         }
+        
+        // Check if the passwords match
+        if (!password.equals(repeatPassword)) {
+            request.setAttribute("error", "Les mots de passe ne correspondent pas.");
+            request.getRequestDispatcher("connexion.jsp").forward(request, response);
+            return;
+        }
 
+        // Hash the password
+        String hashedPassword = hashPassword(password);
+        
         User newUser = new User(login, password);
         UserBDD utable = new UserBDD();
 
@@ -54,7 +65,7 @@ public class RegisterServlet extends HttpServlet {
             // Add the new user
             if (utable.addUser(newUser)) {
                 // Create directory for the user
-                String baseDir = "H:\\Documents\\eclipse-workspace-eya\\Projet_v7\\src\\main\\webapp\\maps";
+                String baseDir = "C:\\Users\\CYTech Student\\eclipse-workspace\\projet\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 new File(userDir).mkdirs();
 
@@ -69,7 +80,7 @@ public class RegisterServlet extends HttpServlet {
                 // Redirect to another page after successful registration
                 response.sendRedirect("connexion.jsp");
             } else {
-                request.setAttribute("error", "L'inscription a ï¿½chouï¿½. Erreur lors de l'ajout de l'utilisateur.");
+                request.setAttribute("error", "L'inscription a échoué. Erreur lors de l'ajout de l'utilisateur.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
             }
         } catch (SQLException | IOException e) {
@@ -79,6 +90,24 @@ public class RegisterServlet extends HttpServlet {
         }
     }
     
+ // Method to hash a password using SHA-256
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+
+            // Convert bytes to hexadecimal format
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors du hachage du mot de passe", e);
+        }
+    }
     
     //test 
     private String assignSoldierImage(String username) {

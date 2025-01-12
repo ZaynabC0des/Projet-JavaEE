@@ -10,10 +10,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import org.json.JSONObject;
 
-import org.json.*;
 
 
 class PlayerInfo {
@@ -40,26 +39,11 @@ public class GameWebSocket {
 
     public static void nextTurn() {
         currentPlayerIndex = (currentPlayerIndex + 1) % playersOrder.size();
+
     }
-
-    // Map qui associe chaque playerId à un Timer
-    private static Map<String, java.util.Timer> disconnectTimers = new ConcurrentHashMap<>();
-
-    // Délai en millisecondes (p. ex. 5 secondes)
-    private static final long GRACE_PERIOD_MS = 3000;
-
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username, @PathParam("code") String code) {
-        if (disconnectTimers.containsKey(username)) {
-
-            System.out.println("[WebSocket] Annulation du départ pour " + username);
-
-            // Annuler le Timer
-            disconnectTimers.get(username).cancel();
-            disconnectTimers.remove(username);
-        }
-
         PlayerInfo player = new PlayerInfo(username, 0,code);
         players.put(session, player);
         if(!playersOrder.contains(player)){
@@ -78,30 +62,8 @@ public class GameWebSocket {
         PlayerInfo leavingPlayer = players.remove(session);
 
         if (leavingPlayer != null) {
-            String playerId = leavingPlayer.username; // ou leavingPlayer.token
-            System.out.println("[WebSocket] Fermeture de la session : " + playerId);
-
-            // Créer un TimerTask qui déclenchera "playerLeft" au bout de 5s
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    // S’il est dans ce timer après 3s,
-                    // c’est qu’il ne s’est pas reconnecté
-                    System.out.println("[WebSocket] Joueur vraiment parti : " + playerId);
-                    nextTurn();
-                    broadcastPlayerLeft(leavingPlayer);
-
-                    // Supprimer le timer de la map
-                    disconnectTimers.remove(playerId);
-                }
-            };
-
-            // Créer un Timer (on pourrait réutiliser un ThreadPool, etc.)
-            java.util.Timer timer = new java.util.Timer();
-            timer.schedule(task, GRACE_PERIOD_MS);
-
-            // Stocker ce timer pour éventuellement l’annuler s’il se reconnecte avant
-            disconnectTimers.put(playerId, timer);
+            System.out.println("[WebSocket] Joueur déconnecté : " + leavingPlayer.username);
+            broadcastPlayerLeft(leavingPlayer);
         }
     }
 

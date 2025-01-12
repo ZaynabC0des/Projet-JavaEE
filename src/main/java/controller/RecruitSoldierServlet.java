@@ -7,14 +7,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.SoldatBDD;
-import model.User;
 import model.UserBDD;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import static controller.GameWebSocket.currentPlayerIndex;
 
@@ -27,18 +24,31 @@ public class RecruitSoldierServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String userLogin = (String) session.getAttribute("userLogin");
 
-
-        if(!GameWebSocket.playersOrder.get(currentPlayerIndex).username.equals(userLogin)){
-            System.out.println("Erreur : Ce n'est pas le tour de ce joueur."+GameWebSocket.playersOrder.get(currentPlayerIndex).username);
-            response.sendRedirect("lecture_carte.jsp");
-            return;
-        }
-
         if (userLogin == null || userLogin.isEmpty()) {
             System.out.println("Erreur : L'utilisateur n'est pas authentifié ou le login est invalide.");
             response.sendRedirect("connexion.jsp");
             return;
         }
+
+        if (GameWebSocket.playersOrder == null || GameWebSocket.playersOrder.isEmpty()) {
+            System.out.println("Erreur : La liste des joueurs (playersOrder) est vide ou non initialisée.");
+            response.sendRedirect("lecture_carte.jsp");
+            return;
+        }
+
+        // puis vérifier l'index
+        if (GameWebSocket.currentPlayerIndex < 0 
+            || GameWebSocket.currentPlayerIndex >= GameWebSocket.playersOrder.size()) {
+            System.out.println("Erreur : currentPlayerIndex (" + GameWebSocket.currentPlayerIndex 
+                 + ") est hors limites pour une liste de taille " + GameWebSocket.playersOrder.size());
+            response.sendRedirect("lecture_carte.jsp");
+            return;
+        }
+
+        // Maintenant, on peut accéder sans risque :
+        String currentPlayerUsername = GameWebSocket.playersOrder
+                                          .get(GameWebSocket.currentPlayerIndex).username;
+
 
         UserBDD userBDD = new UserBDD();
         SoldatBDD soldatBDD = new SoldatBDD();
@@ -54,8 +64,8 @@ public class RecruitSoldierServlet extends HttpServlet {
                 return;
             }
             // Déduire les points de manière sûre
-//            userBDD.updateProductionPoints(userLogin, -15);
-
+            userBDD.updateProductionPoints(userLogin, -15);
+             
                 int[][] grille = (int[][]) session.getAttribute("grille");
 
                 if (grille == null) {
@@ -73,7 +83,6 @@ public class RecruitSoldierServlet extends HttpServlet {
                         }
                     }
                 }
-                Collections.shuffle(emptyPositions, new Random(12845));
 
                 if (emptyPositions.isEmpty()) {
                     System.out.println("Erreur : Aucune case vide disponible pour positionner un soldat.");
@@ -113,24 +122,21 @@ public class RecruitSoldierServlet extends HttpServlet {
                         GameWebSocket.nextTurn();
 
                     }
-
-
+                  
+                  
 
                     // Déduire les points de production du joueur
                     userBDD.updateProductionPoints(userLogin, -15);
-                    int newpoints= userBDD.getProductionPoints(userLogin);
-                    session.setAttribute("productionPoints",newpoints);
                     int nombreSoldats = userBDD.compterSoldatsPossedesParUtilisateur(userLogin, (String)session.getAttribute("code"));
                     session.setAttribute("nombreSoldats", nombreSoldats);
-                    session.setAttribute("score",(int)session.getAttribute("score")+10);
-                    userBDD.updateScore(userLogin,(int)session.getAttribute("score"));
+
                     System.out.println("Soldat ajouté avec succès à la position (" + x + ", " + y + "), ID: " + soldatId);
                     response.sendRedirect("lecture_carte.jsp");
                 } else {
                     System.out.println("Erreur lors de l'ajout du soldat en base de données.");
                     response.sendRedirect("error.jsp");
                 }
-
+             
         } catch (SQLException e) {
             e.printStackTrace();
             request.setAttribute("error", "Erreur de base de données.");

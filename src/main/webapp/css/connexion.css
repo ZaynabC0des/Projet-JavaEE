@@ -4,11 +4,11 @@
 }
 
 body {
-	background-image: url('../images/fond_soldats.jpg'); 
-    background-size: cover;
-    background-position: center; 
-    background-repeat: no-repeat; 
-    color: rgb(0, 255, 255); /* Vert de style terminal */
+     background-image: url('../images/fond_soldats.jpg'); /* Chemin relatif à partir de votre fichier CSS */
+	 background-size: cover; /* Ajuste l'image pour couvrir tout l'écran */
+	 background-position: center; /* Centre l'image */
+	 background-repeat: no-repeat; 
+     color: rgb(0, 255, 255); /* Vert de style terminal */
      font-family: 'Press Start 2P', monospace; /* Police pixelisï¿½e */
      margin: 0;
      padding: 0;
@@ -69,7 +69,7 @@ button:active {
     margin: 15% auto; /* Centrï¿½ verticalement et horizontalement */
     padding: 20px;
     border-radius: 20px; /* Coins arrondis pour la pop-up */
-    width: 30%; /* Largeur ajustï¿½e */
+    width: 80%; /* Largeur ajustï¿½e */
     box-shadow: 
         0 0 10px rgb(0, 255, 255), /* Premiï¿½re couche nï¿½on */
         0 0 20px rgb(0, 255, 255), /* Seconde couche plus grande */

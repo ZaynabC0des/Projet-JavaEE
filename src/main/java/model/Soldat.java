@@ -69,4 +69,6 @@ public class Soldat {
 	public void setOwner(String owner) {
 	    this.owner = owner;
 	}
+	
+	
 }
