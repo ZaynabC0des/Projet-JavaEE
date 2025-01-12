@@ -1,6 +1,9 @@
 package controller;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import jakarta.servlet.annotation.WebServlet;
@@ -18,91 +21,124 @@ public class MoveSoldatServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
-        String loggedInUser = (String) session.getAttribute("userLogin"); // Utilisateur connecté
+        String loggedInUser = (String) session.getAttribute("userLogin"); // Utilisateur connectÃ©
         String soldatIdParam = request.getParameter("soldatId");
         String direction = request.getParameter("direction");
 
-        System.out.println("Requête reçue : soldatId=" + soldatIdParam + ", direction=" + direction);
+        System.out.println("RequÃªte reÃ§ue : soldatId=" + soldatIdParam + ", direction=" + direction);
 
         if (soldatIdParam == null || direction == null) {
-            System.out.println("Paramètres manquants !");
-            response.getWriter().write("{\"success\": false, \"message\": \"Paramètres manquants.\"}");
+            System.out.println("ParamÃ¨tres manquants !");
+            response.getWriter().write("{\"success\": false, \"message\": \"ParamÃ¨tres manquants.\"}");
             return;
         }
 
         int soldatId = Integer.parseInt(soldatIdParam);
         SoldatBDD soldatBDD = new SoldatBDD();
-        Soldat soldat = null;
+        Soldat soldat;
 
         try {
             soldat = soldatBDD.getSoldatById(soldatId);
 
-        if (soldat == null) {
-            System.out.println("Soldat non trouvé avec ID=" + soldatId);
-            response.getWriter().write("{\"success\": false, \"message\": \"Soldat non trouvé.\"}");
-            return;
-        }
-        
-        // Vérification : Est-ce que l'utilisateur connecté est le propriétaire du soldat ?
-        if (!soldat.getOwner().equals(loggedInUser)) {
-            response.getWriter().write("{\"success\": false, \"message\": \"Vous ne pouvez pas déplacer ce soldat.\"}");
-            return;
-        }
-
-        int newX = soldat.getX();
-        int newY = soldat.getY();
-        System.out.println("Position actuelle du soldat : (" + newX + ", " + newY + ")");
-
-        switch (direction) {
-            case "up":
-                newX--;
-                break;
-            case "down":
-                newX++;
-                break;
-            case "left":
-                newY--;
-                break;
-            case "right":
-                newY++;
-                break;
-            default:
-                response.getWriter().write("{\"success\": false, \"message\": \"Direction invalide.\"}");
+            if (soldat == null) {
+                System.out.println("Soldat non trouvÃ© avec ID=" + soldatId);
+                response.getWriter().write("{\"success\": false, \"message\": \"Soldat non trouvÃ©.\"}");
                 return;
-        }
+            }
 
-        System.out.println("Nouvelle position proposée : (" + newX + ", " + newY + ")");
+            // VÃ©rification : Est-ce que l'utilisateur connectÃ© est le propriÃ©taire du soldat ?
+            if (!soldat.getOwner().equals(loggedInUser)) {
+                response.getWriter().write("{\"success\": false, \"message\": \"Vous ne pouvez pas dÃ©placer ce soldat.\"}");
+                return;
+            }
 
-        int[][] grille = (int[][]) session.getAttribute("grille");
-        if (grille != null && newX >= 0 && newY >= 0 && newX < grille.length && newY < grille[0].length) {
-            if (grille[newX][newY] == 2) { // Vérification si la case est une forêt
-                session.setAttribute("proposedPosition", newX + "," + newY);
-                session.setAttribute("askDestroyForest", true); // Demande de confirmation pour détruire la forêt
-                session.setAttribute("forestPosition", newX + "," + newY); // Sauvegarde de la position de la forêt
-                System.out.println("Arrivée sur une case forêt en position (" + newX + ", " + newY + ")");
-                response.sendRedirect("lecture_carte.jsp");
-            } else if (grille[newX][newY] == 0) {
-                boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
-                if (success) {
-                    grille[soldat.getX()][soldat.getY()] = 0; // Libérer l'ancienne position
-                    grille[newX][newY] = soldatId; // Occuper la nouvelle position
-                    session.setAttribute("grille", grille);
-                    response.getWriter().write("{\"success\": true}");
+            int newX = soldat.getX();
+            int newY = soldat.getY();
+            System.out.println("Position actuelle du soldat : (" + newX + ", " + newY + ")");
+
+            switch (direction) {
+                case "up":
+                    newX--;
+                    break;
+                case "down":
+                    newX++;
+                    break;
+                case "left":
+                    newY--;
+                    break;
+                case "right":
+                    newY++;
+                    break;
+                default:
+                    response.getWriter().write("{\"success\": false, \"message\": \"Direction invalide.\"}");
+                    return;
+            }
+
+            System.out.println("Nouvelle position proposÃ©e : (" + newX + ", " + newY + ")");
+
+            int[][] grille = (int[][]) session.getAttribute("grille");
+            if (grille != null && newX >= 0 && newY >= 0 && newX < grille.length && newY < grille[0].length) {
+                if (grille[newX][newY] == 2) { // Case forÃªt
+                    // DÃ©placement du soldat sur la case forÃªt
+                    boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
+                    if (success) {
+                        grille[soldat.getX()][soldat.getY()] = 0; // LibÃ©rer l'ancienne position
+                        grille[newX][newY] = soldatId; // Occuper la nouvelle position
+                        session.setAttribute("grille", grille);
+
+                        // Signaler qu'un popup doit Ãªtre affichÃ©								//code ajoutÃ© 
+                        session.setAttribute("showForestPopup", true);
+                        session.setAttribute("forestPosition", newX + "," + newY);
+                        session.setAttribute("soldatId", soldatId);
+                        																			//code Ã  partir de la 
+                        // VÃ©rifier si l'utilisateur a confirmÃ© la destruction
+                        String destroyForest = request.getParameter("destroyForest");
+                        if ("true".equals(destroyForest)) {
+                            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/base_projet_jee", "root", "");
+                                 PreparedStatement pstmt = conn.prepareStatement("DELETE FROM foret WHERE x_position = ? AND y_position = ?")) {
+                                pstmt.setInt(1, newX);
+                                pstmt.setInt(2, newY);
+                                int rowsDeleted = pstmt.executeUpdate();
+                                if (rowsDeleted > 0) {
+                                    grille[newX][newY] = 0; // Remplacer la forÃªt par une case vide
+                                    session.setAttribute("grille", grille);
+                                    System.out.println("ForÃªt dÃ©truite en position (" + newX + ", " + newY + ").");
+                                } else {
+                                    System.out.println("Erreur : aucune forÃªt trouvÃ©e en base Ã  la position (" + newX + ", " + newY + ").");
+                                }
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                                response.getWriter().write("{\"success\": false, \"message\": \"Erreur lors de la destruction de la forÃªt.\"}");
+                                return;
+                            }
+                        }
+
+                        System.out.println("Soldat dans la forÃªt, popup activÃ©.");
+                        response.getWriter().write("{\"success\": true, \"message\": \"Dans une forÃªt.\"}");
+                    } else {
+                        response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise Ã  jour en base.\"}");
+                    }
+                } else if (grille[newX][newY] == 0) { // Case vide
+                    boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
+                    if (success) {
+                        grille[soldat.getX()][soldat.getY()] = 0;
+                        grille[newX][newY] = soldatId;
+                        session.setAttribute("grille", grille);
+                        response.getWriter().write("{\"success\": true}");
+                    } else {
+                        response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise Ã  jour en base.\"}");
+                    }
                 } else {
-                    response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise à jour en base.\"}");
+                    System.out.println("Case occupÃ©e Ã  (" + newX + ", " + newY + ")");
+                    response.getWriter().write("{\"success\": false, \"message\": \"Case occupÃ©e.\"}");
                 }
             } else {
-                System.out.println("Case occupée à (" + newX + ", " + newY + ")");
-                response.getWriter().write("{\"success\": false, \"message\": \"Case occupée.\"}");
+                System.out.println("Position hors limite ou grille non dÃ©finie.");
+                response.getWriter().write("{\"success\": false, \"message\": \"Position hors limite.\"}");
             }
-        } else {
-            System.out.println("Position hors limite ou grille non définie.");
-            response.getWriter().write("{\"success\": false, \"message\": \"Position hors limite.\"}");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.getWriter().write("{\"success\": false, \"message\": \"Erreur interne : " + e.getMessage() + "\"}");
         }
-    }catch (SQLException e) {
-        e.printStackTrace();
-        response.getWriter().write("{\"success\": false, \"message\": \"Erreur interne : " + e.getMessage() + "\"}");
     }
-}
-    
 }
