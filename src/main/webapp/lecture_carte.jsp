@@ -38,7 +38,7 @@
 
     function initWebSocket() {
 
-        let url = "ws://192.168.249.171:8080/projet_war_exploded/game/" + myUsername+"/"+code;
+        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername+"/"+code;
         ws = new WebSocket(url);
 
         ws.onopen = function() {
@@ -375,10 +375,10 @@ document.addEventListener('keydown', function(event) {
 	       <p>Production points: <%= session.getAttribute("productionPoints") %></p>
 	       <p>Nb of Soldiers: <%= session.getAttribute("nombreSoldats") %></p>
 	       <p>Nb of Cities: <%= session.getAttribute("nombreVilles") %></p>
-	       
-	       
+
+
 	   </div>
-	
+
 	   <!-- Script JavaScript directement intégré -->
 	  <script>
     document.addEventListener("DOMContentLoaded", function () {

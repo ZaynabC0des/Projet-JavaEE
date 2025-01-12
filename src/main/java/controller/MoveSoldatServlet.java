@@ -34,7 +34,7 @@ public class MoveSoldatServlet extends HttpServlet {
 
         int soldatId = Integer.parseInt(soldatIdParam);
         SoldatBDD soldatBDD = new SoldatBDD();
-        Soldat soldat;
+        Soldat soldat = null;
 
         try {
             soldat = soldatBDD.getSoldatById(soldatId);
