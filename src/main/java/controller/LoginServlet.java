@@ -47,13 +47,14 @@ public class LoginServlet extends HttpServlet {
                 // Stocke l'objet User et son login dans la session
                 session.setAttribute("user", foundUser);
                 session.setAttribute("userLogin", foundUser.getLogin());
-
+                int score = utable.getUserScore(foundUser.getLogin()); 
+                session.setAttribute("score", score);
                 System.out.println("Utilisateur trouv� : " + foundUser.getLogin());
                 // Récupérer les données supplémentaires de l'utilisateur
                 User userDetails = utable.getUserDetails(foundUser.getLogin());
                 if (userDetails != null) {
-                    session.setAttribute("productionPoints", userDetails.getPointProduction());
-                
+                	  session.setAttribute("productionPoints", userDetails.getPointProduction());
+                      session.setAttribute("nombreVilles", utable.compterVillesPossedeesParUtilisateur(foundUser.getLogin()));                
                  // R�cup�rer et stocker l'image du soldat dans la session
                     session.setAttribute("soldierImage", userDetails.getSoldierImage());
                 

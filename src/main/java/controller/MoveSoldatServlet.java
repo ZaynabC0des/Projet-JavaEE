@@ -130,9 +130,12 @@ public class MoveSoldatServlet extends HttpServlet {
                 }
 
                 response.sendRedirect("lecture_carte.jsp");  // Redirection pour afficher les rÃ©sultats du combat
+                session.setAttribute("isSoldierOnCity", true);
+                session.setAttribute("currentSoldierId", request.getParameter("soldatId"));
             }
         } else {
             System.out.println("La ville appartient dÃ©jÃ  au joueur ou est libre, aucun combat nÃ©cessaire.");
+            
         }
     }
 

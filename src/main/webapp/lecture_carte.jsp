@@ -1,8 +1,13 @@
+<!DOCTYPE html>
+<html>
+
 <%@ page import="model.TuileType" %>
 <%@ page import="java.io.*" %>  <!-- Importation de HttpSession -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <script src="js/modalControls.js"></script> 
 <script src="js/moveSoldat.js"></script> 
+<script src="timer.js" defer></script>
+
 <link rel="stylesheet" type="text/css" href="css/combat.css">
 
 
@@ -38,7 +43,7 @@
 
     function initWebSocket() {
 
-        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername+"/"+code;
+        let url = "ws://localhost:8080/projet/game/" + myUsername+"/"+code;
         ws = new WebSocket(url);
 
         ws.onopen = function() {
@@ -111,7 +116,9 @@
         appendLog("Le joueur " + username + " a quitté la partie.");
 
     }
+
     initWebSocket();
+
 
 
 </script>
@@ -134,13 +141,7 @@
     session.setAttribute("askDestroyForest", false); // Réinitialiser l'indicateur
 }
 %>
-<!DOCTYPE html>
-<html>
 
-<%
-String soldierImage = (String) session.getAttribute("soldierImage");
-%>
-<img src="<%= soldierImage %>" alt="Soldat" class="soldier-image">
 
 
 <script>
@@ -167,38 +168,14 @@ String soldierImage = (String) session.getAttribute("soldierImage");
     <link rel="stylesheet" type="text/css" href="css/maps.css"> <!-- Assurez-vous que le chemin est correct -->
 </head>
 <body>
-<div class="header">
-    <button class="logout-button" id="logout-button">Déconnexion</button>
-</div>
+<script>
+    // Vérifier si le timer doit être réinitialisé
+    const resetTimer = <%= session.getAttribute("resetTimer") != null ? "true" : "false" %>;
 
-<div id="logoutModal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="close">&times;</span>
-        <p>Êtes-vous sûr de vouloir quitter le jeu ? Les données seront sauvegardées.</p>
-        <button id="confirmLogout" class="confirm-button">Oui</button>
-        <button id="cancelLogout" class="cancel-button">Annuler</button>
-    </div>
-</div>
-
-
-
-    <div class="button-container">
-        <form action="RecruitSoldierServlet" method="POST">
-            <button type="submit" class="custom-button">Recruter un soldat</button>
-        </form>
-    </div>
-    
-<% 
-    String errorMessage = (String) session.getAttribute("errorMessage");
-    if (errorMessage != null) {
-    	System.out.println("Error Message: " + errorMessage); // Log pour vérifier
-%>
-    <p style="color: red;"><%= errorMessage %></p>
-<%
-        session.removeAttribute("errorMessage");  // Nettoyer après affichage
-    }
-%>
-
+    // Retirer l'attribut après utilisation pour éviter une réinitialisation non voulue
+    <% session.removeAttribute("resetTimer"); %>;
+</script>
+<div id="timer-container">Temps restant : 05:00</div>
 
 
 <div class = "container">
@@ -220,17 +197,9 @@ if (userFilePath == null) {
     out.println("<p>Erreur : Aucun fichier CSV associé à l'utilisateur.</p>");
 } else {
     File csvFile = new File(userFilePath);
-    if (csvFile.exists()){
-    	 // Récupérer la position actuelle du joueur
-        /*
-        String playerPosition = (String) session.getAttribute("playerPosition");
-        int playerX = 0, playerY = 0;
-        if (playerPosition != null) {
-            String[] positionParts = playerPosition.split(",");
-            playerX = Integer.parseInt(positionParts[0]);
-            playerY = Integer.parseInt(positionParts[1]);
-        }
-        */
+
+
+
 
   %>
 
@@ -256,12 +225,7 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
                     break; // Arrêtez la boucle dès que le soldat est trouvé
                 }
             }
-            /*
-            // Ajouter "J1" si c'est la position du joueur
-            if (rowNum == playerX && colNum == playerY) {
-                out.println("<td>J1</td>");
-            }
-            */
+
 
             
             if (currentSoldat != null) {
@@ -296,7 +260,7 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
     out.println("</table>");
     out.println("<p style='color:red;'>Erreur lors du chargement du fichier CSV : " + e.getMessage() + "</p>");
 }
-}
+
 }
 %>
 </table>
@@ -351,21 +315,21 @@ function moveSoldat(direction) {
 }
 
 
-//Écoute les touches "z", "q", "s", "d"
+//Écoute les touches fléchées
 document.addEventListener('keydown', function(event) {
     let direction = null;
 
     switch (event.key) {
-        case "z": // Haut
+        case "ArrowUp": // Haut
             direction = "up";
             break;
-        case "s": // Bas
+        case "ArrowDown": // Bas
             direction = "down";
             break;
-        case "q": // Gauche
+        case "ArrowLeft": // Gauche
             direction = "left";
             break;
-        case "d": // Droite
+        case "ArrowRight": // Droite
             direction = "right";
             break;
         default:
@@ -378,20 +342,60 @@ document.addEventListener('keydown', function(event) {
 });
 </script>
 
+  <%
+    Integer score = (Integer) session.getAttribute("score");   
+        %>
+        <div class="score-container">
+            <h3>Your Score</h3>
+            <p><%= score %></p>
+        </div>
+	     <%String soldierImage = (String) session.getAttribute("soldierImage");%>
 
                <!-- Bouton View Profile -->
 		<button id="viewProfileButton" class="view-profile-button">View Profile</button>
             <!-- Profil Joueur -->
-	   <div class="player-profile" id="playerProfile">
-	       <h2>Your Profile</h2>
-	       <p>Pseudo: <%= session.getAttribute("userLogin") %></p>
-	       <p>Production points: <%= session.getAttribute("productionPoints") %></p>
-	       <p>Nb of Soldiers: <%= session.getAttribute("nombreSoldats") %></p>
-	       <p>Nb of Cities: <%= session.getAttribute("nombreVilles") %></p>
+	  <div class="player-profile" id="playerProfile">
+    <h2>Your Profile</h2>
+    <div class="soldier-container">
+        <img src="<%= soldierImage %>" alt="Soldat" class="soldier-image">
+    </div>
+
+    <p>Pseudo: <%= (session.getAttribute("userLogin") != null) ? session.getAttribute("userLogin") : "Unknown" %></p>
+    <p>Production points: <%= (session.getAttribute("productionPoints") != null) ? session.getAttribute("productionPoints") : "0" %></p>
+    <p>Nb of Soldiers: <%= (session.getAttribute("nombreSoldats") != null) ? session.getAttribute("nombreSoldats") : "0" %></p>
+    <p>Nb of Cities: <%= (session.getAttribute("nombreVilles") != null) ? session.getAttribute("nombreVilles") : "0" %></p>
+
+    <% 
+        Boolean canRecruit = (Boolean) session.getAttribute("canRecruit");
+        canRecruit = true;
+        if (canRecruit != null && canRecruit) {
+    %>
+        <div>
+            <form action="RecruitSoldierServlet" method="POST">
+                <button type="submit" id="recruitSoldier" class="recruit-button">Recruter un soldat</button>
+            </form>
+        </div>
+    <% 
+        } 
+    %>
+
+    <div class="footer">
+        <button class="logout-button" id="logout-button">Déconnexion</button>
+    </div>
+
 	       
-	       
+	     
+		<div id="logoutModal" class="modal">
+ 		   <div class="modal-content">
+        <span class="close" id="close">&times;</span>
+        <p>Êtes-vous sûr de vouloir quitter le jeu ? Les données seront sauvegardées.</p>
+        <button id="confirmLogout" class="confirm-button">Oui</button>
+        <button id="cancelLogout" class="cancel-button">Annuler</button>
+   		 </div>
+		</div>
+
 	   </div>
-	
+
 	   <!-- Script JavaScript directement intégré -->
 	  <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -406,7 +410,6 @@ document.addEventListener('keydown', function(event) {
     });
 </script>
            
-        </div>
-    </div>
+    
 </body>
 </html> 
