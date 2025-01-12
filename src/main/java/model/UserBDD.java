@@ -247,19 +247,6 @@ public class UserBDD {
 	}
 
     
-    public int compterSoldatsPossedesParUtilisateur(String userLogin) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM soldat WHERE login_user = ?";
-        try (Connection conn = this.init();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, userLogin);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-                return 0;  // Retourne 0 si aucun résultat n'est trouvé
-            }
-        }
-    }
-        
+
 
 }

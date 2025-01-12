@@ -10,15 +10,20 @@
 
 <link rel="stylesheet" type="text/css" href="css/combat.css">
 
-
+<%@ page import="model.TuileType" %>
+<%@ page import="java.io.*" %>  <!-- Importation de HttpSession -->
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.Combat" %>
 <%@ page import="java.util.Random" %>
 <%@ page import="model.Soldat, model.SoldatBDD" %>
 <%@ page import="controller.GameWebSocket" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.sql.SQLException" %>
+<%@ page import="model.VilleBDD" %>
 
 <%@ page session="true" %>
+
+
 <%
     // Supposons qu'on ait stocké le pseudo en session
     String username = (String) session.getAttribute("userLogin");
@@ -45,14 +50,11 @@
 
         let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername+"/"+code;
         ws = new WebSocket(url);
-
         ws.onopen = function() {
             ws.send("{\"type\":\"askTour\",\"username\":\""+myUsername+"\"}");
         };
 
         ws.onmessage = function(event) {
-
-
             // Tenter de parser le message JSON
             try {
 
@@ -62,8 +64,6 @@
                 }
                 appendLog("[WS] Message reçu : " + event.data);
                 handleMessage(data);
-
-
 
             } catch(e) {
                 console.error("Erreur parsing JSON", e);
@@ -176,6 +176,59 @@
     <% session.removeAttribute("resetTimer"); %>;
 </script>
 <div id="timer-container">Temps restant : 05:00</div>
+    <div class="button-container">
+        <form action="RecruitSoldierServlet" method="POST">
+            <button type="submit" class="custom-button">Recruter un soldat</button>
+        </form>
+    </div>
+
+
+    <div class="button-container">
+    <button onclick="healSelectedSoldier()" class="custom-button">Soigner le Soldat Sélectionné</button>
+</div>
+
+
+   <script>
+   function healSelectedSoldier() {
+	    if (!window.selectedSoldatId) {
+	        alert("Aucun soldat sélectionné !");
+	        return;
+	    }
+
+	    fetch('SoldierServlet', {
+	        method: 'POST',
+	        headers: {
+	            'Content-Type': 'application/x-www-form-urlencoded'
+	        },
+	        body: 'soldatId=' + window.selectedSoldatId
+	    })
+	    .then(response => response.json())
+	    .then(data => {
+	        if (data.success) {
+	            alert(data.message);
+	            location.reload(); // Recharge la page pour voir les changements
+	        } else {
+	            alert(data.message);
+	        }
+	    })
+	    .catch(error => {
+	        console.error("Erreur lors de la requête :", error);
+	        alert("Une erreur est survenue lors du soin du soldat.");
+	    });
+	}
+
+
+   </script>
+<%
+    String errorMessage = (String) session.getAttribute("errorMessage");
+    if (errorMessage != null) {
+    	System.out.println("Error Message: " + errorMessage); // Log pour vérifier
+%>
+    <p style="color: red;"><%= errorMessage %></p>
+<%
+        session.removeAttribute("errorMessage");  // Nettoyer après affichage
+    }
+%>
 
 
 <div class = "container">
@@ -200,11 +253,8 @@ if (userFilePath == null) {
 
 
   %>
-
-  
-<table border="1">
-<% 
-try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+  <table border="1"><%
+	try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
     String line;
     int rowNum = 0;
     while ((line = br.readLine()) != null) {
@@ -230,7 +280,10 @@ try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
                 // Afficher un soldat
                 out.println("<td style='position: relative;'>");
                 out.println("<img src='" + request.getContextPath() + "/images/tuiles/vide.png' style='width: 50px; height: 50px; position: absolute;'>");
-                out.println("<img src='" + request.getContextPath() + "/" + imagePath +"' style='width: 50px; height: 50px; position: relative; cursor: pointer;' onclick='selectSoldat(" + currentSoldat.getId() + ")'>");
+                out.println("<img src='" + request.getContextPath() + "/" + imagePath +
+                	    "' style='width: 50px; height: 50px; position: relative; cursor: pointer;' " +
+                	    "onclick='selectSoldat(" + currentSoldat.getId() + ", " + currentSoldat.getPointDeVie() + ")'>");
+
                 out.println("</td>");
             } else {
                 // Afficher la case normale
@@ -272,19 +325,13 @@ window.selectedSoldatId = null;
 
 
 // Fonction appelée lorsqu'un soldat est cliqué
-function selectSoldat(soldatId) {
-    if(soldatBlocked){
+function selectSoldat(soldatId, pointsDeVie) {
+    if (soldatBlocked) {
         alert("Ce n'est pas votre tour !");
         return;
     }
-
-    alert("Soldat sélectionné : " + soldatId);
+    alert("Soldat sélectionné : " + soldatId + "\nPoints de vie : " + pointsDeVie);
     window.selectedSoldatId = soldatId;
-
-
-
-
-
 }
 
 function moveSoldat(direction) {
@@ -312,22 +359,28 @@ function moveSoldat(direction) {
         .catch(error => console.error("Erreur lors de la requête : ", error));
 }
 
-
-//Écoute les touches fléchées
 document.addEventListener('keydown', function(event) {
     let direction = null;
 
     switch (event.key) {
-        case "z": // Haut
+        case "ArrowUp":
+        case "z":
+        case "Z":
             direction = "up";
             break;
-        case "s": // Bas
+        case "ArrowDown":
+        case "s":
+        case "S":
             direction = "down";
             break;
-        case "q": // Gauche
+        case "ArrowLeft":
+        case "q":
+        case "Q":
             direction = "left";
             break;
-        case "d": // Droite
+        case "ArrowRight":
+        case "d":
+        case "D":
             direction = "right";
             break;
         default:
@@ -338,6 +391,44 @@ document.addEventListener('keydown', function(event) {
         moveSoldat(direction);
     }
 });
+
+
+<!-- SIMULATION COMBAT  -->
+<%
+Soldat soldat = new Soldat();
+int x = soldat.getX();
+int y = soldat.getY();
+
+VilleBDD villeBDD = new VilleBDD();
+
+// Récupérer le combat depuis la session
+Combat combat = (Combat) session.getAttribute("combat");
+Integer defensePoints = (Integer) session.getAttribute("combatDefensePoints");
+
+int lancerDe = 0; // Valeur du dé
+String message = ""; // Résultat de l'attaque
+
+if (combat == null) {
+    defensePoints = villeBDD.getCityDefensePoints(x, y);
+    System.out.println("Initialisation d'un nouveau combat avec " + defensePoints + " points de défense.");
+    combat = new Combat(defensePoints, "ville");
+    session.setAttribute("combat", combat);
+    session.setAttribute("combatDefensePoints", defensePoints);
+}
+
+if (request.getParameter("attaquer") != null) {
+	System.out.println("Dé lancé : " + lancerDe);
+	System.out.println("Dé lancé : " + lancerDe);
+    Random random = new Random();
+    lancerDe = random.nextInt(6) + 1; // Lancer de dé entre 1 et 6
+    message = combat.Attaque(lancerDe); // Réduction des points de défense
+    session.setAttribute("combatDefensePoints", combat.getPointsDefenseCible()); // Mettre à jour les points de défense
+    System.out.println("Dé lancé : " + lancerDe);
+    System.out.println("Points de défense restants après attaque : " + combat.getPointsDefenseCible());
+}
+
+
+%>
 </script>
 
   <%
@@ -348,8 +439,45 @@ document.addEventListener('keydown', function(event) {
             <p><%= score %></p>
         </div>
 	     <%String soldierImage = (String) session.getAttribute("soldierImage");%>
+<!-- Affichage -->
+<div class="combat-container">
+    <h1>Fight</h1>
+    <% if (combat.estCibleEnVie()) { %>
+        <form method="post">
+            <button type="submit" name="attaquer" class="combat-action-button">Roll the dice</button>
+        </form>
+    <% } else { %>
+        <p>La ville a été capturée !</p>
+    <% } %>
 
-               <!-- Bouton View Profile -->
+    <div class="result">
+        <% if (lancerDe > 0) { %>
+             <img src="./images/des/<%= lancerDe %>blanc.png" alt="Dé face <%= lancerDe %>" />
+
+        <% } %>
+
+        <% if (!message.isEmpty()) { %>
+            <p><%= message %></p>
+        <% } %>
+    </div>
+
+    <%
+    Integer remainingDefense = combat != null ? combat.getPointsDefenseCible() : 0;
+    if (remainingDefense == null) {
+        remainingDefense = 0;
+    }
+    int percentage = (int) ((double) remainingDefense / 100 * 100); // Barre de progression basée sur un maximum de 100
+    %>
+
+    <p>Defense remaining: <%= remainingDefense %></p>
+    <div class="progress-bar">
+        <div class="progress-bar-inner" style="width: <%= percentage %>%;"></div>
+    </div>
+</div>
+
+
+
+      <!-- Bouton View Profile -->
 		<button id="viewProfileButton" class="view-profile-button">View Profile</button>
             <!-- Profil Joueur -->
 	  <div class="player-profile" id="playerProfile">
@@ -410,4 +538,4 @@ document.addEventListener('keydown', function(event) {
            
 
 </body>
-</html> 
+</html>

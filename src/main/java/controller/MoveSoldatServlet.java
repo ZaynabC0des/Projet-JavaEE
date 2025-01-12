@@ -41,11 +41,8 @@ public class MoveSoldatServlet extends HttpServlet {
         String loggedInUser = (String) session.getAttribute("userLogin"); // Utilisateur connecté
         String soldatIdParam = request.getParameter("soldatId");
         String direction = request.getParameter("direction");
-        String action = request.getParameter("action");
+        String action = request.getParameter("attaquer");
         UserBDD userBDD = new UserBDD();
-
-        System.out.println("Requête reçue : soldatId=" + soldatIdParam + ", direction=" + direction);
-
         if (soldatIdParam == null || direction == null) {
             System.out.println("Paramètres manquants !");
             response.getWriter().write("{\"success\": false, \"message\": \"Paramètres manquants.\"}");
@@ -54,7 +51,7 @@ public class MoveSoldatServlet extends HttpServlet {
 
         int soldatId = Integer.parseInt(soldatIdParam);
         SoldatBDD soldatBDD = new SoldatBDD();
-        Soldat soldat = null;
+        Soldat soldat;
 
         try {
             soldat = soldatBDD.getSoldatById(soldatId);
@@ -93,7 +90,7 @@ public class MoveSoldatServlet extends HttpServlet {
                 case 3:
                     session.removeAttribute("combat");
                     session.setAttribute("showPopup", true);
-                    session.setAttribute("errorMessage", "Mouvement bloquÃ© : Montagne non franchissable.");
+                    session.setAttribute("errorMessage", "Mouvement bloqué : Montagne non franchissable.");
                     response.sendRedirect("lecture_carte.jsp");
                     return;
                 case 2:
@@ -129,73 +126,79 @@ public class MoveSoldatServlet extends HttpServlet {
                     response.getWriter().write("{\"success\": true, \"message\": \"Dans une forêt.\"}");
 
                     return;
+        case 1:
+            String owner = null;
+            try {
 
+                if (owner == null) {
+                    VilleBDD villeBDD = new VilleBDD();
+                    int defensePoints = villeBDD.getCityDefensePoints(newX, newY);
 
+                    // R�initialiser le combat uniquement si n�cessaire
+                    Combat combat = (Combat) session.getAttribute("combat");
+                    if (combat == null || combat.getPointsDefenseCible() != defensePoints) {
+                        System.out.println("R�initialisation du combat avec " + defensePoints + " points de d�fense.");
+                        combat = new Combat(defensePoints, "ville");
+                        session.setAttribute("combat", combat);
+                        //session.setAttribute("combatDefensePoints", combat.getPointsDefenseCible());
+                    } else {
+                        System.out.println("Combat d�j� initialis� avec les points de d�fense actuels.");
+                    }
 
+                    if (request.getParameter("attaquer") == null) {
+                    	System.out.println("aezrty");
+                        Random random = (Random) session.getAttribute("random");
+                        if (random == null) {
+                            random = new Random();
+                            session.setAttribute("random", random);
+                        }
+                        int lancerDe = random.nextInt(6) + 1;
+                        combat.Attaque(lancerDe);
 
-
-
-                case 1:
-                    handleCityEncounter(session, newX, newY, request, response);
-                    break;
-                case 0:
-                    session.removeAttribute("combat");
-                    System.out.println("Position mise Ã  jour : (" + newX + ", " + newY + ")");
-                    break;
-            }
-
-            boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
-            if (success) {
-                grille[soldat.getX()][soldat.getY()] = 0;
-                grille[newX][newY] = soldatId;
-                session.setAttribute("grille", grille);
-                response.getWriter().write("{\"success\": true}");
-            } else {
-                response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise à jour en base.\"}");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            response.getWriter().write("{\"success\": false, \"message\": \"Erreur interne : " + e.getMessage() + "\"}");
-        }
-    }
-
-    private void handleCityEncounter(HttpSession session, int x, int y, HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
-        VilleBDD villeBDD = new VilleBDD();
-        String userLogin = (String) session.getAttribute("userLogin");
-        String owner = villeBDD.getCityOwner(x, y);  // RÃ©cupÃ©ration du propriÃ©taire actuel de la ville
-
-        if (owner == null || !owner.equals(userLogin)) {
-            // RÃ©cupÃ©ration dynamique des points de dÃ©fense de la ville Ã  partir de la base de donnÃ©es
-            int defensePoints = villeBDD.getCityDefensePoints(x, y);
-            Combat combat = new Combat(defensePoints, "ville");
-            session.setAttribute("combat", combat);
-
-            // VÃ©rification si une action d'attaque est initiÃ©e
-            if ("attaquer".equals(request.getParameter("action"))) {
-                Random random = new Random();
-                int lancerDe = random.nextInt(6) + 1;
-                String combatResult = combat.Attaque(lancerDe);
-                session.setAttribute("combatResult", combatResult);
-                session.setAttribute("lancerDe", lancerDe);
-                session.setAttribute("combatActive", true);
-                villeBDD.updateDefensePoints(x, y, combat.getPointsDefenseCible());
-
-                if (!combat.estCibleEnVie()) {
-                    villeBDD.updateCityOwner(x, y, userLogin);  // La ville est capturÃ©e si le combat est gagnÃ©
-                    session.setAttribute("combatActive", false);
+                        if (combat.getPointsDefenseCible() != defensePoints) {
+                            villeBDD.updateDefensePoints(newX, newY, combat.getPointsDefenseCible());
+                        }
+                        session.setAttribute("combatDefensePoints", combat.getPointsDefenseCible());
+                        System.out.println("R�sultat de l'attaque : " + combat.getPointsDefenseCible());
+                    }
+                } else {
+                    System.out.println("La ville appartient au joueur actuel.");
                 }
-
-                response.sendRedirect("lecture_carte.jsp");  // Redirection pour afficher les rÃ©sultats du combat
-                session.setAttribute("isSoldierOnCity", true);
-                session.setAttribute("currentSoldierId", request.getParameter("soldatId"));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                System.out.println("Erreur lors de la r�cup�ration ou de la mise � jour des points de d�fense : " + e.getMessage());
             }
-        } else {
-            System.out.println("La ville appartient dÃ©jÃ  au joueur ou est libre, aucun combat nÃ©cessaire.");
+            break;
 
-        }
+
+
+
+    case 0:
+        session.removeAttribute("combat");
+        System.out.println("Position mise à jour : (" + newX + ", " + newY + ")");
+        break;
+}
+
+boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
+if (success) {
+    grille[soldat.getX()][soldat.getY()] = 0;
+    grille[newX][newY] = soldatId;
+    session.setAttribute("grille", grille);
+    response.getWriter().write("{\"success\": true}");
+} else {
+    response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise à jour en base.\"}");
     }
+} catch (SQLException e) {
+    e.printStackTrace();
+    response.getWriter().write("{\"success\": false, \"message\": \"Erreur interne : " + e.getMessage() + "\"}");
+    }
+}
 
 
 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        doGet(request, response); // Redirige les requ�tes POST vers doGet
+    }
 
 }

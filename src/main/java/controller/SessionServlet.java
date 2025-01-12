@@ -45,8 +45,6 @@ public class SessionServlet extends HttpServlet {
             request.getRequestDispatcher("/session.jsp").forward(request, response);
 
         } else if ("join".equals(action)) {
-
-
             // Rejoindre une session existante
             String code = request.getParameter("code");
 
