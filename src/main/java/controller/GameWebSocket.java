@@ -85,7 +85,7 @@ public class GameWebSocket {
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
-                    // S’il est dans ce timer après 5s,
+                    // S’il est dans ce timer après 3s,
                     // c’est qu’il ne s’est pas reconnecté
                     System.out.println("[WebSocket] Joueur vraiment parti : " + playerId);
                     nextTurn();
