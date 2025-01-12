@@ -233,6 +233,19 @@ public class UserBDD {
         return 0; 
     }
 
+	public void updateScore(String login, int newScore) throws SQLException {
+		String sql = "UPDATE user SET score = ? WHERE login = ?";
+		try (Connection cnx = this.init();
+			 PreparedStatement stmt = cnx.prepareStatement(sql)) {
+			stmt.setInt(1, newScore);
+			stmt.setString(2, login);
+			int rowsUpdated = stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
     
     public int compterSoldatsPossedesParUtilisateur(String userLogin) throws SQLException {
         String sql = "SELECT COUNT(*) FROM soldat WHERE login_user = ?";

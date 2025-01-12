@@ -122,8 +122,8 @@ public class RecruitSoldierServlet extends HttpServlet {
                     session.setAttribute("productionPoints",newpoints);
                     int nombreSoldats = userBDD.compterSoldatsPossedesParUtilisateur(userLogin, (String)session.getAttribute("code"));
                     session.setAttribute("nombreSoldats", nombreSoldats);
-
-
+                    session.setAttribute("score",(int)session.getAttribute("score")+10);
+                    userBDD.updateScore(userLogin,(int)session.getAttribute("score"));
                     System.out.println("Soldat ajouté avec succès à la position (" + x + ", " + y + "), ID: " + soldatId);
                     response.sendRedirect("lecture_carte.jsp");
                 } else {

@@ -127,9 +127,7 @@ public class SessionServlet extends HttpServlet {
                             );
                             GameWebSocket.broadcastMessage(json);
 
-                            // Mettre à jour la grille
-                            grille[x][y] = 4; // 4 représente un soldat
-                            session.setAttribute("grille", grille);
+
 
                             // Déduire les points de production du joueur
 
