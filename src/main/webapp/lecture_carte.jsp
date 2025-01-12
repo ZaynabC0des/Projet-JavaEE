@@ -1,8 +1,13 @@
+<!DOCTYPE html>
+<html>
+
 <%@ page import="model.TuileType" %>
 <%@ page import="java.io.*" %>  <!-- Importation de HttpSession -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <script src="js/modalControls.js"></script> 
 <script src="js/moveSoldat.js"></script> 
+<script src="timer.js" defer></script>
+
 <link rel="stylesheet" type="text/css" href="css/combat.css">
 
 
@@ -136,13 +141,7 @@
     session.setAttribute("askDestroyForest", false); // Réinitialiser l'indicateur
 }
 %>
-<!DOCTYPE html>
-<html>
 
-<%
-String soldierImage = (String) session.getAttribute("soldierImage");
-%>
-<img src="<%= soldierImage %>" alt="Soldat" class="soldier-image">
 
 
 <script>
@@ -169,36 +168,14 @@ String soldierImage = (String) session.getAttribute("soldierImage");
     <link rel="stylesheet" type="text/css" href="css/maps.css"> <!-- Assurez-vous que le chemin est correct -->
 </head>
 <body>
-<div class="header">
-    <button class="logout-button" id="logout-button">Déconnexion</button>
-</div>
+<script>
+    // Vérifier si le timer doit être réinitialisé
+    const resetTimer = <%= session.getAttribute("resetTimer") != null ? "true" : "false" %>;
 
-<div id="logoutModal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="close">&times;</span>
-        <p>Êtes-vous sûr de vouloir quitter le jeu ? Les données seront sauvegardées.</p>
-        <button id="confirmLogout" class="confirm-button">Oui</button>
-        <button id="cancelLogout" class="cancel-button">Annuler</button>
-    </div>
-</div>
-
-
-
-<% 
-    Boolean canRecruit = (Boolean) session.getAttribute("canRecruit");
-    canRecruit=true;
-    if (canRecruit != null && canRecruit) {
-
-%>
-      <div class="button-container">
-        <form action="RecruitSoldierServlet" method="POST">
-            <button type="submit" id="recruitSoldier" class="custom-button">Recruter un soldat</button>
-        </form>
-    </div>
-
-<% 
-    } 
-%>
+    // Retirer l'attribut après utilisation pour éviter une réinitialisation non voulue
+    <% session.removeAttribute("resetTimer"); %>;
+</script>
+<div id="timer-container">Temps restant : 05:00</div>
 
 
 <div class = "container">
@@ -220,8 +197,6 @@ if (userFilePath == null) {
     out.println("<p>Erreur : Aucun fichier CSV associé à l'utilisateur.</p>");
 } else {
     File csvFile = new File(userFilePath);
-
-
 
 
   %>
@@ -338,7 +313,7 @@ function moveSoldat(direction) {
 }
 
 
-//Écoute les touches "z", "q", "s", "d"
+//Écoute les touches fléchées
 document.addEventListener('keydown', function(event) {
     let direction = null;
 
@@ -365,17 +340,57 @@ document.addEventListener('keydown', function(event) {
 });
 </script>
 
+  <%
+    Integer score = (Integer) session.getAttribute("score");
+        %>
+        <div class="score-container">
+            <h3>Your Score</h3>
+            <p><%= score %></p>
+        </div>
+	     <%String soldierImage = (String) session.getAttribute("soldierImage");%>
 
                <!-- Bouton View Profile -->
 		<button id="viewProfileButton" class="view-profile-button">View Profile</button>
             <!-- Profil Joueur -->
-	   <div class="player-profile" id="playerProfile">
-	       <h2>Your Profile</h2>
-	       <p>Pseudo: <%= session.getAttribute("userLogin") %></p>
-	       <p>Production points: <%= session.getAttribute("productionPoints") %></p>
-	       <p>Nb of Soldiers: <%= session.getAttribute("nombreSoldats") %></p>
-	       <p>Nb of Cities: <%= session.getAttribute("nombreVilles") %></p>
+	  <div class="player-profile" id="playerProfile">
+    <h2>Your Profile</h2>
+    <div class="soldier-container">
+        <img src="<%= soldierImage %>" alt="Soldat" class="soldier-image">
+    </div>
 
+    <p>Pseudo: <%= (session.getAttribute("userLogin") != null) ? session.getAttribute("userLogin") : "Unknown" %></p>
+    <p>Production points: <%= (session.getAttribute("productionPoints") != null) ? session.getAttribute("productionPoints") : "0" %></p>
+    <p>Nb of Soldiers: <%= (session.getAttribute("nombreSoldats") != null) ? session.getAttribute("nombreSoldats") : "0" %></p>
+    <p>Nb of Cities: <%= (session.getAttribute("nombreVilles") != null) ? session.getAttribute("nombreVilles") : "0" %></p>
+
+    <%
+        Boolean canRecruit = (Boolean) session.getAttribute("canRecruit");
+        canRecruit = true;
+        if (canRecruit != null && canRecruit) {
+    %>
+        <div>
+            <form action="RecruitSoldierServlet" method="POST">
+                <button type="submit" id="recruitSoldier" class="recruit-button">Recruter un soldat</button>
+            </form>
+        </div>
+    <%
+        }
+    %>
+
+    <div class="footer">
+        <button class="logout-button" id="logout-button">Déconnexion</button>
+    </div>
+
+
+
+		<div id="logoutModal" class="modal">
+ 		   <div class="modal-content">
+        <span class="close" id="close">&times;</span>
+        <p>Êtes-vous sûr de vouloir quitter le jeu ? Les données seront sauvegardées.</p>
+        <button id="confirmLogout" class="confirm-button">Oui</button>
+        <button id="cancelLogout" class="cancel-button">Annuler</button>
+   		 </div>
+		</div>
 
 	   </div>
 
@@ -393,7 +408,6 @@ document.addEventListener('keydown', function(event) {
     });
 </script>
            
-        </div>
-    </div>
+
 </body>
 </html> 

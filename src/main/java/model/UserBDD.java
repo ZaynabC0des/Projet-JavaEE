@@ -71,19 +71,41 @@ public class UserBDD {
 	}
 	
 	public boolean updateProductionPoints(String login, int pointChange) throws SQLException {
-	    String sql = "UPDATE user SET point_production = point_production + ? WHERE login = ?";
-	    try (Connection cnx = this.init();
-	         PreparedStatement stmt = cnx.prepareStatement(sql)) {
-	        stmt.setInt(1, pointChange);
-	        stmt.setString(2, login);
-	        int result = stmt.executeUpdate();
-	        return result > 0;
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        throw e;
-	    }
-	}
+        Connection cnx = null;
+        PreparedStatement stmt = null;
+        try {
+            cnx = this.init();
+            cnx.setAutoCommit(false); // Commencer une transaction
 
+            // Vérification des points actuels pour s'assurer qu'ils ne deviendront pas négatifs
+            int currentPoints = getProductionPoints(login);
+            if (currentPoints + pointChange < 0) {
+                cnx.rollback(); // Annuler la transaction si les points deviennent négatifs
+                return false; // Indiquer que l'opération a échoué
+            }
+
+            String sql = "UPDATE user SET point_production = point_production + ? WHERE login = ?";
+            stmt = cnx.prepareStatement(sql);
+            stmt.setInt(1, pointChange);
+            stmt.setString(2, login);
+
+            int result = stmt.executeUpdate();
+            cnx.commit(); // Valider la transaction si tout va bien
+            return result > 0;
+        } catch (SQLException e) {
+            if (cnx != null) {
+                try {
+                    cnx.rollback(); // S'assurer de faire un rollback en cas d'erreur
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e; // Propager l'exception
+        } finally {
+            if (stmt != null) stmt.close();
+            if (cnx != null) cnx.close();
+        }
+    }
 	
 	public int getProductionPoints(String login) throws SQLException {
 	    String query = "SELECT point_production FROM user WHERE login = ?";
@@ -198,6 +220,33 @@ public class UserBDD {
         }
         return "default-soldier.png"; // Valeur par défaut
     }
+    public int getUserScore(String login) throws SQLException {
+        String query = "SELECT score FROM user WHERE login = ?";
+        try (Connection conn = this.init();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, login);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("score");
+            }
+        }
+        return 0; 
+    }
 
+    
+    public int compterSoldatsPossedesParUtilisateur(String userLogin) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM soldat WHERE login_user = ?";
+        try (Connection conn = this.init();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, userLogin);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+                return 0;  // Retourne 0 si aucun résultat n'est trouvé
+            }
+        }
+    }
+        
 
 }

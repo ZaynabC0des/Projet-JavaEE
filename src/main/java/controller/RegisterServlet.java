@@ -54,7 +54,7 @@ public class RegisterServlet extends HttpServlet {
             // Add the new user
             if (utable.addUser(newUser)) {
                 // Create directory for the user
-                String baseDir = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\maps";
+                String baseDir = "H:\\Documents\\eclipse-workspace-eya\\Projet_v7\\src\\main\\webapp\\maps";
                 String userDir = Paths.get(baseDir, login).toString();
                 new File(userDir).mkdirs();
 

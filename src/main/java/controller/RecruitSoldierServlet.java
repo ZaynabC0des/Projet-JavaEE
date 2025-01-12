@@ -6,11 +6,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.Soldat;
 import model.SoldatBDD;
+import model.User;
 import model.UserBDD;
-import controller.GameWebSocket;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -36,7 +34,7 @@ public class RecruitSoldierServlet extends HttpServlet {
             return;
         }
 
-        if (userLogin.isEmpty()) {
+        if (userLogin == null || userLogin.isEmpty()) {
             System.out.println("Erreur : L'utilisateur n'est pas authentifié ou le login est invalide.");
             response.sendRedirect("connexion.jsp");
             return;
@@ -48,7 +46,16 @@ public class RecruitSoldierServlet extends HttpServlet {
         try {
             int currentPoints = userBDD.getProductionPoints(userLogin);
             System.out.println("Points de production pour le joueur " + userLogin + ": " + currentPoints);
-            if (currentPoints >= 15 ) {
+            
+            if (currentPoints < 15) {
+                System.out.println("Pas assez de points de production pour recruter un soldat.");
+                request.setAttribute("errorMessage", "Il vous manque encore des points de production pour recruter un soldat.");
+                request.getRequestDispatcher("lecture_carte.jsp").forward(request, response);
+                return;
+            }
+            // Déduire les points de manière sûre
+//            userBDD.updateProductionPoints(userLogin, -15);
+
                 int[][] grille = (int[][]) session.getAttribute("grille");
 
                 if (grille == null) {
@@ -106,14 +113,16 @@ public class RecruitSoldierServlet extends HttpServlet {
                         GameWebSocket.nextTurn();
 
                     }
-                    // Mettre à jour la grille
-                    grille[x][y] = 4; // 4 représente un soldat
-                    session.setAttribute("grille", grille);
+
+
 
                     // Déduire les points de production du joueur
                     userBDD.updateProductionPoints(userLogin, -15);
+                    int newpoints= userBDD.getProductionPoints(userLogin);
+                    session.setAttribute("productionPoints",newpoints);
                     int nombreSoldats = userBDD.compterSoldatsPossedesParUtilisateur(userLogin, (String)session.getAttribute("code"));
                     session.setAttribute("nombreSoldats", nombreSoldats);
+
 
                     System.out.println("Soldat ajouté avec succès à la position (" + x + ", " + y + "), ID: " + soldatId);
                     response.sendRedirect("lecture_carte.jsp");
@@ -121,12 +130,7 @@ public class RecruitSoldierServlet extends HttpServlet {
                     System.out.println("Erreur lors de l'ajout du soldat en base de données.");
                     response.sendRedirect("error.jsp");
                 }
-            } else {
 
-                System.out.println("Pas assez de points de production pour recruter un soldat.");
-                request.setAttribute("error", "Pas assez de points de production pour recruter un soldat.");
-                request.getRequestDispatcher("lecture_carte.jsp").forward(request, response);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
             request.setAttribute("error", "Erreur de base de données.");

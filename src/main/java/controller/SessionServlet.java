@@ -32,13 +32,18 @@ public class SessionServlet extends HttpServlet {
             // Créer une nouvelle session
             String sessionDetails = request.getParameter("details");
             String code = GameSession.createSession(sessionDetails);
+            String message;
 
             try {
                 GameSession.generateRandomMap(code);
-                response.getWriter().write("Session créée avec le code : " + code + " et map générée.");
+                message =  code;
             } catch (IOException e) {
-                response.getWriter().write("Session créée avec le code : " + code + ", mais erreur lors de la génération de la map.");
+                message= "Session créée avec le code : " + code + ", mais erreur lors de la génération de la map.";
             }
+            request.setAttribute("code", code);
+            request.setAttribute("message", message);
+            request.getRequestDispatcher("/session.jsp").forward(request, response);
+
         } else if ("join".equals(action)) {
 
 
@@ -48,7 +53,7 @@ public class SessionServlet extends HttpServlet {
             //String sessionDetails = GameSession.joinSession(code);
             HttpSession session = request.getSession();
             session.setAttribute("code", code);
-
+            session.setAttribute("resetTimer", true);
 
             // Chemin vers le dossier et le fichier CSV de l'utilisateur
 
