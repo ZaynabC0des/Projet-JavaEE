@@ -7,10 +7,12 @@ import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.json.JSONObject;
 
-import org.json.*;
 
 
 class PlayerInfo {
@@ -31,15 +33,24 @@ public class GameWebSocket {
 
     // On stocke tous les joueurs connectés
     public static final Map<Session, PlayerInfo> players = new ConcurrentHashMap<>();
-    public static PlayerInfo playerTour=null;
+    public static List<PlayerInfo> playersOrder = new ArrayList<>();
+
+    public static int currentPlayerIndex = 0;
+
+    public static void nextTurn() {
+        currentPlayerIndex = (currentPlayerIndex + 1) % playersOrder.size();
+
+    }
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username, @PathParam("code") String code) {
         PlayerInfo player = new PlayerInfo(username, 0,code);
         players.put(session, player);
-        if(playerTour==null){
-            playerTour=player;
+        if(!playersOrder.contains(player)){
+            playersOrder.add(player);
         }
+
+
         System.out.println("[WebSocket] Nouveau joueur : " + username);
 
         broadcastPlayerJoined(player);
@@ -49,9 +60,7 @@ public class GameWebSocket {
     @OnClose
     public void onClose(Session session) {
         PlayerInfo leavingPlayer = players.remove(session);
-        //if (playerTour.username.equals(leavingPlayer.username)) {
-           // playerTour = players.values().stream().filter(p -> (!p.username.equals(leavingPlayer.username) &&(p.code.equals(leavingPlayer.code)))).findFirst().get();
-        //}
+
         if (leavingPlayer != null) {
             System.out.println("[WebSocket] Joueur déconnecté : " + leavingPlayer.username);
             broadcastPlayerLeft(leavingPlayer);
@@ -68,15 +77,7 @@ public class GameWebSocket {
         PlayerInfo player = players.get(session);
         switch (type) {
             case "move":
-                if(players.size()!=1) {
-                    if (playerTour.username.equals(player.username)) {
-                        playerTour = players.values().stream().filter(p -> (!p.username.equals(player.username) &&(p.code.equals(player.code)))).findFirst().get();
-                    } else {
-                        return;
-                    }
-                }else{
-                    playerTour=player;
-                }
+                nextTurn();
 
                 broadcastSoldierMoved(player, json.getInt("soldatId"));
                 break;
@@ -102,7 +103,7 @@ public class GameWebSocket {
 
     public static void respondTour(Session session) throws IOException {
         String json = String.format(
-                "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playerTour.username,playerTour.code
+                "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playersOrder.get(currentPlayerIndex).username,playersOrder.get(currentPlayerIndex).code
         );
         session.getBasicRemote().sendText(json);
     }

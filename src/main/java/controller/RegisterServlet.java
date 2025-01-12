@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.security.MessageDigest;
+import java.sql.SQLException;
 
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
@@ -35,25 +35,33 @@ public class RegisterServlet extends HttpServlet {
             request.getRequestDispatcher("connexion.jsp").forward(request, response);
             return;
         }
+        
+        // Check if the passwords match
+        if (!password.equals(repeatPassword)) {
+            request.setAttribute("error", "Les mots de passe ne correspondent pas.");
+            request.getRequestDispatcher("connexion.jsp").forward(request, response);
+            return;
+        }
 
         // Hash the password
         String hashedPassword = hashPassword(password);
-
-        User newUser = new User(login, hashedPassword);
+        
+        User newUser = new User(login, password);
         UserBDD utable = new UserBDD();
 
         try {
             // Check if the user already exists
             if (utable.checkUserExists(login)) {
-                request.setAttribute("error", "Le login est déjà utilisé. Veuillez choisir un autre login.");
+                request.setAttribute("error", "Le login est deja utilis�. Veuillez choisir un autre login.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 return;
             }
 
             // Assign an image to the new user
-            String soldierImage = assignSoldierImage(login);
-            newUser.setSoldierImage(soldierImage);
+            String soldierImage = assignSoldierImage(login); // G�n�re l'image pour l'utilisateur
+            newUser.setSoldierImage(soldierImage); // Associe l'image � l'utilisateur
 
+           
             // Add the new user
             if (utable.addUser(newUser)) {
                 // Create directory for the user
@@ -72,17 +80,17 @@ public class RegisterServlet extends HttpServlet {
                 // Redirect to another page after successful registration
                 response.sendRedirect("connexion.jsp");
             } else {
-                request.setAttribute("error", "L'inscription a échoué. Erreur lors de l'ajout de l'utilisateur.");
+                request.setAttribute("error", "L'inscription a �chou�. Erreur lors de l'ajout de l'utilisateur.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            request.setAttribute("error", "Erreur de système: " + e.getMessage());
+            request.setAttribute("error", "Erreur de syst�me: " + e.getMessage());
             request.getRequestDispatcher("connexion.jsp").forward(request, response);
         }
     }
-
-    // Method to hash a password using SHA-256
+    
+ // Method to hash a password using SHA-256
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -100,16 +108,19 @@ public class RegisterServlet extends HttpServlet {
             throw new RuntimeException("Erreur lors du hachage du mot de passe", e);
         }
     }
-
+    
+    //test 
     private String assignSoldierImage(String username) {
         int hash = username.hashCode();
-        int index = Math.abs(hash % 4);
+        int index = Math.abs(hash % 4); // Limite � 5 images ou couleurs
         String[] images = {
             "images/soldats/soldat_bleu.jpg",
             "images/soldats/soldat_vert.jpg",
             "images/soldats/soldat_rouge.jpg",
             "images/soldats/soldat_violet.jpg"
+           
         };
         return images[index];
     }
+
 }

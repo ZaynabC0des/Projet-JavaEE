@@ -4,7 +4,10 @@
 }
 
 body {
-     background-color: #000; /* Fond noir */
+     background-image: url('../images/fond_soldats.jpg'); /* Chemin relatif à partir de votre fichier CSS */
+	 background-size: cover; /* Ajuste l'image pour couvrir tout l'écran */
+	 background-position: center; /* Centre l'image */
+	 background-repeat: no-repeat; 
      color: rgb(0, 255, 255); /* Vert de style terminal */
      font-family: 'Press Start 2P', monospace; /* Police pixelisï¿½e */
      margin: 0;
