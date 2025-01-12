@@ -79,8 +79,9 @@ public class SoldatBDD {
         }
     }
 
+    // Mettre ï¿½ jour les points de vie d'un soldat
     public boolean updatePointsDeVie(int idSoldat, int newPoints) {
-        String sql = "UPDATE soldat SET point_de_vie = ? WHERE id_soldat = ?";
+        String sql = "UPDATE soldat SET point_de_vie = ? WHERE id = ?";
         try (Connection cnx = initConnection();
              PreparedStatement stmt = cnx.prepareStatement(sql)) {
 
@@ -95,7 +96,6 @@ public class SoldatBDD {
             return false;
         }
     }
-
 
     // Supprimer un soldat
     public boolean supprimerSoldat(int idSoldat) {
@@ -221,19 +221,7 @@ public class SoldatBDD {
         }
     }
 
-    public int healSoldiers(String userLogin, String gameCode) throws SQLException {
-        String query = "UPDATE soldat " +
-                       "SET point_de_vie = LEAST(point_de_vie + 15, 100) " +
-                       "WHERE point_de_vie < 50 AND login_user = ? AND code = ?";
-        try (Connection conn = initConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, userLogin);
-            stmt.setString(2, gameCode);
-
-            return stmt.executeUpdate(); // Retourne le nombre de lignes mises à jour
-        }
-    }
-
+    
   
     
 
