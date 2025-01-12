@@ -1,6 +1,9 @@
 package controller;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Random;
 
@@ -22,13 +25,16 @@ public class MoveSoldatServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
-        String loggedInUser = (String) session.getAttribute("userLogin");
+        String loggedInUser = (String) session.getAttribute("userLogin"); // Utilisateur connecté
         String soldatIdParam = request.getParameter("soldatId");
         String direction = request.getParameter("direction");
         String action = request.getParameter("action");
 
+        System.out.println("Requête reçue : soldatId=" + soldatIdParam + ", direction=" + direction);
+
         if (soldatIdParam == null || direction == null) {
-            response.getWriter().write("{\"success\": false, \"message\": \"ParamÃ¨tres manquants.\"}");
+            System.out.println("Paramètres manquants !");
+            response.getWriter().write("{\"success\": false, \"message\": \"Paramètres manquants.\"}");
             return;
         }
 
@@ -38,18 +44,22 @@ public class MoveSoldatServlet extends HttpServlet {
 
         try {
             soldat = soldatBDD.getSoldatById(soldatId);
+
             if (soldat == null) {
-                response.getWriter().write("{\"success\": false, \"message\": \"Soldat non trouvÃ©.\"}");
+                System.out.println("Soldat non trouvé avec ID=" + soldatId);
+                response.getWriter().write("{\"success\": false, \"message\": \"Soldat non trouvé.\"}");
                 return;
             }
 
+            // Vérification : Est-ce que l'utilisateur connecté est le propriétaire du soldat ?
             if (!soldat.getOwner().equals(loggedInUser)) {
-                response.getWriter().write("{\"success\": false, \"message\": \"Vous ne pouvez pas dÃ©placer ce soldat.\"}");
+                response.getWriter().write("{\"success\": false, \"message\": \"Vous ne pouvez pas déplacer ce soldat.\"}");
                 return;
             }
 
             int newX = soldat.getX();
             int newY = soldat.getY();
+            System.out.println("Position actuelle du soldat : (" + newX + ", " + newY + ")");
 
             switch (direction) {
                 case "up": newX--; break;
@@ -73,12 +83,45 @@ public class MoveSoldatServlet extends HttpServlet {
                     response.sendRedirect("lecture_carte.jsp");
                     return;
                 case 2:
-                    session.removeAttribute("combat");
-                    session.setAttribute("proposedPosition", newX + "," + newY);
-                    session.setAttribute("askDestroyForest", true);
-                    session.setAttribute("forestPosition", newX + "," + newY);
-                    response.sendRedirect("lecture_carte.jsp");
-                    return;
+                    // Déplacement du soldat sur la case forêt
+                    boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
+                    if (success) {
+                        grille[soldat.getX()][soldat.getY()] = 0; // Libérer l'ancienne position
+                        grille[newX][newY] = soldatId; // Occuper la nouvelle position
+                        session.setAttribute("grille", grille);
+
+                        // Signaler qu'un popup doit être affiché								//code ajouté
+                        session.setAttribute("showForestPopup", true);
+                        session.setAttribute("forestPosition", newX + "," + newY);
+                        session.setAttribute("soldatId", soldatId);
+                        //code à partir de la
+                        // Vérifier si l'utilisateur a confirmé la destruction
+                        String destroyForest = request.getParameter("destroyForest");
+                        if ("true".equals(destroyForest)) {
+                            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/base_projet_jee", "root", "");
+                                 PreparedStatement pstmt = conn.prepareStatement("DELETE FROM foret WHERE x_position = ? AND y_position = ?")) {
+                                pstmt.setInt(1, newX);
+                                pstmt.setInt(2, newY);
+                                int rowsDeleted = pstmt.executeUpdate();
+                                if (rowsDeleted > 0) {
+                                    grille[newX][newY] = 0; // Remplacer la forêt par une case vide
+                                    session.setAttribute("grille", grille);
+                                    System.out.println("Forêt détruite en position (" + newX + ", " + newY + ").");
+                                } else {
+                                    System.out.println("Erreur : aucune forêt trouvée en base à la position (" + newX + ", " + newY + ").");
+                                }
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                                response.getWriter().write("{\"success\": false, \"message\": \"Erreur lors de la destruction de la forêt.\"}");
+                                return;
+                            }
+                        }
+
+                        System.out.println("Soldat dans la forêt, popup activé.");
+                        response.getWriter().write("{\"success\": true, \"message\": \"Dans une forêt.\"}");
+                    } else {
+                        response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise à jour en base.\"}");
+                    }
                 case 1:
                     handleCityEncounter(session, newX, newY, request, response);
                     break;
@@ -135,7 +178,7 @@ public class MoveSoldatServlet extends HttpServlet {
             }
         } else {
             System.out.println("La ville appartient dÃ©jÃ  au joueur ou est libre, aucun combat nÃ©cessaire.");
-            
+
         }
     }
 
