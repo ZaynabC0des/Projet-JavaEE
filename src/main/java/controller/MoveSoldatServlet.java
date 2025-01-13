@@ -112,8 +112,7 @@ public class MoveSoldatServlet extends HttpServlet {
 
                     session.setAttribute("grille", grille);
                     updateMap(session);
-                    GameWebSocket.broadcastDestroyForest(loggedInUser,(String)session.getAttribute("code"),newX,newY,soldatId);
-
+                    GameWebSocket.broadcastDestroyForest(loggedInUser,(String) session.getAttribute("code"),newX, newY, soldatId);
                     userBDD.updateProductionPoints(loggedInUser, 10);
                     session.setAttribute("productionPoints", userBDD.getProductionPoints(loggedInUser));
 
