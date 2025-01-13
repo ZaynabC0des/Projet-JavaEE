@@ -41,6 +41,8 @@ function startTimer() {
             clearInterval(timerTask); // Arrêter le timer
             localStorage.removeItem('endTime'); // Nettoyer le localStorage
             timerContainer.textContent = "Temps écoulé !";
+            window.location.href = "winner.jsp"; // Redirige vers une nouvelle page JSP
+
         } else {
             timerContainer.textContent = `Temps restant : ${formatTime(timeLeft)}`;
         }

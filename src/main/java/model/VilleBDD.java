@@ -132,15 +132,16 @@ public class VilleBDD {
             pstmt.setInt(3, y);
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("Le propriÃ©taire de la ville a Ã©tÃ© mis Ã  jour avec succÃ¨s.");
+                System.out.println("Le propri�taire de la ville a �t� mis � jour avec succ�s.");
             } else {
-                System.out.println("Aucune ville n'a Ã©tÃ© mise Ã  jour.");
+                System.out.println("Aucune ville n'a �t� mise � jour.");
             }
         } catch (SQLException e) {
-            System.out.println("Erreur lors de la mise Ã  jour du propriÃ©taire de la ville : " + e.getMessage());
+            System.out.println("Erreur lors de la mise � jour du propri�taire de la ville : " + e.getMessage());
             throw e;
         }
     }
+
 
     public void updateDefensePoints(int x, int y, int newDefensePoints) throws SQLException {
         String query = "UPDATE ville SET point_defense = ? WHERE x_position = ? AND y_position = ?";

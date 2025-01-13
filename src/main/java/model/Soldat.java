@@ -8,7 +8,7 @@ public class Soldat {
     private String imagePath;
     private String owner;
 
-    // Constructeur par défaut
+    // Constructeur par dï¿½faut
     public Soldat() {
     }
 
@@ -54,6 +54,15 @@ public class Soldat {
         this.pointDeVie = pointDeVie;
     }
 
+    public void setDefensePoints(int pointsDeVie) {
+	    this.pointDeVie = pointsDeVie;
+	}
+
+
+    public int setDefensePoints() {
+        return pointDeVie;
+    }
+
     public String getImagePath() {
         return imagePath;
     }
@@ -69,6 +78,10 @@ public class Soldat {
 	public void setOwner(String owner) {
 	    this.owner = owner;
 	}
-	
-	
+
+
+
+
+
+
 }

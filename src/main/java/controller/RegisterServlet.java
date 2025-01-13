@@ -47,7 +47,7 @@ public class RegisterServlet extends HttpServlet {
         // Hash the password
         String hashedPassword = hashPassword(password);
 
-        User newUser = new User(login, password);
+        User newUser = new User(login, hashedPassword);
         UserBDD utable = new UserBDD();
 
         try {
@@ -61,6 +61,7 @@ public class RegisterServlet extends HttpServlet {
             // Assign an image to the new user
             String soldierImage = assignSoldierImage(login); // G�n�re l'image pour l'utilisateur
             newUser.setSoldierImage(soldierImage); // Associe l'image � l'utilisateur
+
 
 
             // Add the new user

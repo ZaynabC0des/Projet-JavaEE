@@ -200,9 +200,6 @@ public class SoldatBDD {
         return null;
     }
 
-
-
-
     public boolean updatePosition(int soldatId, int newX, int newY) {
         String sql = "UPDATE soldat SET x_position = ?, y_position = ? WHERE id_soldat = ?";
         try (Connection cnx = initConnection();
@@ -230,9 +227,107 @@ public class SoldatBDD {
             stmt.setString(1, userLogin);
             stmt.setString(2, gameCode);
 
-            return stmt.executeUpdate(); // Retourne le nombre de lignes mises à jour
+            return stmt.executeUpdate(); // Retourne le nombre de lignes mises ï¿½ jour
         }
     }
+
+    public Soldat getEnemySoldatAtPosition(int x, int y, String code, String currentPlayer) throws SQLException {
+        String query = "SELECT id_soldat, x_position, y_position, point_de_vie, login_user " +
+                       "FROM soldat " +
+                       "WHERE x_position = ? AND y_position = ? AND code = ? AND login_user != ?";
+        try (Connection conn = initConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, x);
+            stmt.setInt(2, y);
+            stmt.setString(3, code);
+            stmt.setString(4, currentPlayer);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Soldat soldat = new Soldat();
+                soldat.setId(rs.getInt("id_soldat"));
+                soldat.setX(rs.getInt("x_position"));
+                soldat.setY(rs.getInt("y_position"));
+                soldat.setPointDeVie(rs.getInt("point_de_vie"));
+                soldat.setOwner(rs.getString("login_user"));
+                return soldat;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Aucun soldat ennemi trouvï¿½
+    }
+
+    public boolean updateSoldat(Soldat soldat) {
+        String sql = "UPDATE soldat SET point_de_vie = ?, x_position = ?, y_position = ? WHERE id_soldat = ?";
+        try (Connection cnx = initConnection();
+             PreparedStatement stmt = cnx.prepareStatement(sql)) {
+            stmt.setInt(1, soldat.getPointDeVie());
+            stmt.setInt(2, soldat.getX());
+            stmt.setInt(3, soldat.getY());
+            stmt.setInt(4, soldat.getId());
+
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public boolean removeSoldat(int idSoldat) {
+        String sql = "DELETE FROM soldat WHERE id_soldat = ?";
+        try (Connection cnx = initConnection();
+             PreparedStatement stmt = cnx.prepareStatement(sql)) {
+            stmt.setInt(1, idSoldat);
+
+            int rowsDeleted = stmt.executeUpdate();
+            return rowsDeleted > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Soldat getSoldatAtPosition(int x, int y) throws SQLException {
+        String query = "SELECT id_soldat, x_position, y_position, point_de_vie, login_user " +
+                       "FROM soldat WHERE x_position = ? AND y_position = ?";
+        try (Connection conn = initConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, x);
+            stmt.setInt(2, y);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Soldat soldat = new Soldat();
+                soldat.setId(rs.getInt("id_soldat"));
+                soldat.setX(rs.getInt("x_position"));
+                soldat.setY(rs.getInt("y_position"));
+                soldat.setPointDeVie(rs.getInt("point_de_vie"));
+                soldat.setOwner(rs.getString("login_user"));
+                return soldat;
+            }
+        }
+        return null;
+    }
+
+    public String getLoginBySoldatId(int soldatId) throws SQLException {
+        String query = "SELECT login_user FROM soldat WHERE id_soldat = ?";
+        try (Connection conn = initConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, soldatId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("login_user"); // Retourne le login du joueur
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Retourne null si aucun joueur n'est trouvï¿½
+    }
+
+
 
   
     

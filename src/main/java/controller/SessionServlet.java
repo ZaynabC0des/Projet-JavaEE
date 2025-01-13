@@ -9,12 +9,10 @@ import jakarta.servlet.http.HttpSession;
 import model.*;
 import model.SoldatBDD;
 import model.UserBDD;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +21,10 @@ import java.util.Random;
 
 @WebServlet("/session")
 public class SessionServlet extends HttpServlet {
-    @Override
+    private static final long serialVersionUID = 1L;
+
+
+	@Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
 
@@ -156,7 +157,10 @@ public class SessionServlet extends HttpServlet {
                     request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 }
             } else{
-                    response.getWriter().write("Code de session invalide !");
+            	String message_erreur = "Code de session invalide !";
+            	 request.setAttribute("message_erreur", message_erreur);
+
+            	 request.getRequestDispatcher("/session.jsp").forward(request, response);
                 }
             }else {
                 response.getWriter().write("Action invalide !");

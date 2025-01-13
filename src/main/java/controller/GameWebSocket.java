@@ -148,9 +148,6 @@ public class GameWebSocket {
             case "combatSoldat":
                 broadcastCombatSoldat(player,json.getInt("idSoldat"),json.getInt("SoldatId"));
                 break;
-            //case "destroyForest":
-                //broadcastDestroyForest(player,json.getInt("x"),json.getInt("y"),json.getInt("soldatId"));
-                //break;
             case "askTour":
                 respondTour(session);
                 break;

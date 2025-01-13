@@ -7,16 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
 import model.UserBDD;
-import model.VilleBDD;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+
 
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -47,15 +40,15 @@ public class LoginServlet extends HttpServlet {
                 // Stocke l'objet User et son login dans la session
                 session.setAttribute("user", foundUser);
                 session.setAttribute("userLogin", foundUser.getLogin());
-                int score = utable.getUserScore(foundUser.getLogin()); 
+                int score = utable.getUserScore(foundUser.getLogin());
                 session.setAttribute("score", score);
-                System.out.println("Utilisateur trouv� : " + foundUser.getLogin());
+                System.out.println("Utilisateur trouve : " + foundUser.getLogin());
                 // Récupérer les données supplémentaires de l'utilisateur
                 User userDetails = utable.getUserDetails(foundUser.getLogin());
                 if (userDetails != null) {
                 	  session.setAttribute("productionPoints", userDetails.getPointProduction());
-                      session.setAttribute("nombreVilles", utable.compterVillesPossedeesParUtilisateur(foundUser.getLogin()));                
-                 // R�cup�rer et stocker l'image du soldat dans la session
+                      session.setAttribute("nombreVilles", utable.compterVillesPossedeesParUtilisateur(foundUser.getLogin()));
+                 // Recuperer et stocker l'image du soldat dans la session
                     session.setAttribute("soldierImage", userDetails.getSoldierImage());
                 
                 }

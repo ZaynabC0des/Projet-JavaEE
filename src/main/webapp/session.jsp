@@ -13,12 +13,17 @@
         <button type="submit">Créer une session</button>
     </form>
   <% if (request.getAttribute("message") != null) { %>
-    
  	<div class="container">
     <h2>Code : <%= request.getAttribute("message") %></h2>
-       
     </div>
-     <% } %>
+     <% } if(request.getAttribute("message_erreur") != null) { %>
+   	 <div class="container_erreur">
+   	    <h2><%= request.getAttribute("message_erreur") %></h2>
+   	    </div>
+
+    <% }%>
+
+
     <form action="session" method="POST" >
         <input type="hidden" name="action" value="join">
         <label for="code">Code de session :</label>

@@ -230,23 +230,41 @@ public class UserBDD {
                 return rs.getInt("score");
             }
         }
-        return 0; 
+        return 0;
     }
 
-	public void updateScore(String login, int newScore) throws SQLException {
-		String sql = "UPDATE user SET score = ? WHERE login = ?";
-		try (Connection cnx = this.init();
-			 PreparedStatement stmt = cnx.prepareStatement(sql)) {
-			stmt.setInt(1, newScore);
-			stmt.setString(2, login);
-			int rowsUpdated = stmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
+    public void updateScore(String login, int additionalScore) throws SQLException {
+        String sql = "UPDATE user SET score = score + ? WHERE login = ?";
+        try (Connection cnx = this.init();
+             PreparedStatement stmt = cnx.prepareStatement(sql)) {
+            stmt.setInt(1, additionalScore);
+            stmt.setString(2, login);
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                System.out.println("No user found with login: " + login);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 
-    
+    public String getTopPlayer() throws SQLException {
+        String query = "SELECT login FROM user ORDER BY point_production DESC LIMIT 1";
+        try (Connection conn = this.init();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("login"); // Assurez-vous que le nom de la colonne correspond
+            }
+        }
+        return null; // Aucun joueur trouvé
+    }
+
+
+
+
+
 
 
 }

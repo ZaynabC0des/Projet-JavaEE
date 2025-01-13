@@ -7,7 +7,6 @@
 <script src="js/modalControls.js"></script> 
 <script src="js/moveSoldat.js"></script> 
 <script src="timer.js" defer></script>
-
 <link rel="stylesheet" type="text/css" href="css/combat.css">
 
 <%@ page import="model.TuileType" %>
@@ -49,7 +48,7 @@
 
     function initWebSocket() {
 
-        let url = "ws:/192.168.220.171:8080/projet_war_exploded/game/" + myUsername+"/"+code;
+        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername+"/"+code;
         ws = new WebSocket(url);
         ws.onopen = function() {
             ws.send("{\"type\":\"askTour\",\"username\":\""+myUsername+"\"}");
@@ -365,22 +364,21 @@ document.addEventListener('keydown', function(event) {
     let direction = null;
 
     switch (event.key) {
-        case "ArrowUp":
+
         case "z":
         case "Z":
             direction = "up";
             break;
-        case "ArrowDown":
+
         case "s":
         case "S":
             direction = "down";
             break;
-        case "ArrowLeft":
+
         case "q":
         case "Q":
             direction = "left";
             break;
-        case "ArrowRight":
         case "d":
         case "D":
             direction = "right";
@@ -433,26 +431,26 @@ if (request.getParameter("attaquer") != null) {
 %>
 </script>
 
-  <%
-    Integer score = (Integer) session.getAttribute("score");
-        %>
-        <div class="score-container">
-            <h3>Your Score</h3>
-            <p><%= score %></p>
-        </div>
-	     <%String soldierImage = (String) session.getAttribute("soldierImage");%>
-<!-- Affichage -->
-<div class="combat-container">
-    <h1>Fight</h1>
-    <% if (combat.estCibleEnVie()) { %>
-        <form method="post">
-            <button type="submit" name="attaquer" class="combat-action-button">Roll the dice</button>
-        </form>
-    <% } else { %>
-        <p>La ville a été capturée !</p>
-    <% } %>
+  <%Integer score = (Integer) session.getAttribute("score");%>
+       <div class="score-container">
+           <h3>Your Score</h3>
+           <p><%= score %></p>
+       </div>
+  <%String soldierImage = (String) session.getAttribute("soldierImage");%>
 
-    <div class="result">
+
+<!-- Affichage -->
+
+<div class="combat-container">
+       <h1>Fight</h1>
+    <%
+        String combatOwner = (String) session.getAttribute("combatOwner");
+    %>
+    <p>Combat lancé par le joueur <%= combatOwner %></p>
+
+    <% if (combat.estCibleEnVie()) { %>
+        <p>Combat en cours...</p>
+        <div class="result">
         <% if (lancerDe > 0) { %>
              <img src="./images/des/<%= lancerDe %>blanc.png" alt="Dé face <%= lancerDe %>" />
 
@@ -462,6 +460,9 @@ if (request.getParameter("attaquer") != null) {
             <p><%= message %></p>
         <% } %>
     </div>
+    <% } else { %>
+        <p>Il ne se passe rien !</p>
+    <% } %>
 
     <%
     Integer remainingDefense = combat != null ? combat.getPointsDefenseCible() : 0;
