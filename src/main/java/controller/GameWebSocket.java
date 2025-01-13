@@ -36,8 +36,17 @@ public class GameWebSocket {
     public static int currentPlayerIndex = 0;
 
     public static void nextTurn() {
-        currentPlayerIndex = (currentPlayerIndex + 1) % playersOrder.size();
+        if (playersOrder.isEmpty()) {
+            // Aucun joueur
+            currentPlayerIndex = 0;
+            return;
+        }
+        do {
+            currentPlayerIndex = (currentPlayerIndex + 1) % playersOrder.size();
+        } while (getPlayerbyusername(playersOrder.get(currentPlayerIndex)) == null
+                && !playersOrder.isEmpty());
     }
+
 
     private static PlayerInfo getPlayerbyusername(String username){
         for (PlayerInfo player : players.values()) {
@@ -83,7 +92,7 @@ public class GameWebSocket {
 
     @OnClose
     public void onClose(Session session) {
-        PlayerInfo leavingPlayer = players.remove(session);
+        PlayerInfo leavingPlayer = players.get(session);
 
         if (leavingPlayer != null) {
             String playerId = leavingPlayer.username; // ou leavingPlayer.token
@@ -96,6 +105,7 @@ public class GameWebSocket {
                     // S’il est dans ce timer après 3s,
                     // c’est qu’il ne s’est pas reconnecté
                     System.out.println("[WebSocket] Joueur vraiment parti : " + playerId);
+                    players.remove(session);
                     playersOrder.remove(leavingPlayer.username);
                     nextTurn();
                     broadcastPlayerLeft(leavingPlayer);
