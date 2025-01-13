@@ -1,0 +1,42 @@
+.winner-container {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgb(0, 255, 255);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    color: rgb(0, 255, 255);
+    font-family: 'Press Start 2P', monospace;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+    max-width: 600px;
+    margin: 50px auto;
+}
+
+.winner-container h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 1);
+}
+
+.winner-container p {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+#winner-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 1), 0 0 30px rgba(0, 255, 255, 0.7);
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-image: url('../images/fond_foret2.jpg');
+    background-size: cover;
+    background-position: center;
+    color: rgb(0, 255, 255);
+}

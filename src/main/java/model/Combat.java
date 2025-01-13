@@ -1,8 +1,10 @@
 package model;
 
 public class Combat {
-    private int pointsDefenseCible; // Points de défense de l'unité ou de la ville
-    private String typeCible;       // "soldat" ou "ville"
+    private int pointsDefenseCible;
+    private String typeCible;
+    private int lastDiceRoll; // Ajout pour stocker le dernier résultat du dé
+    private String lastAttackMessage; // Ajout pour stocker le dernier message d'attaque
 
     public Combat(int pointsDefenseCible, String typeCible) {
         this.pointsDefenseCible = pointsDefenseCible;
@@ -10,17 +12,17 @@ public class Combat {
     }
 
     public String Attaque(int pointsAttaque) {
+        this.lastDiceRoll = pointsAttaque; // Mise à jour avec le résultat du dé
         pointsDefenseCible -= pointsAttaque;
-        if (pointsDefenseCible <= 0) {
-            pointsDefenseCible = 0; 
-            if (typeCible.equals("ville")) {
-                return "La ville a été capturée !";
-            } else {
-                return "L'unité ennemie a été vaincue, le soldat occupe désormais sa place.";
-            }
+
+        if (pointsDefenseCible < 0) {
+            pointsDefenseCible = 0;
+            this.lastAttackMessage = "Ville capturé ";
         } else {
-            return "Damage: " + pointsAttaque ;
+            this.lastAttackMessage = "Damage: " + pointsAttaque;
         }
+        
+        return lastAttackMessage;
     }
 
     public boolean estCibleEnVie() {
@@ -33,5 +35,13 @@ public class Combat {
 
     public String getTypeCible() {
         return typeCible;
+    }
+
+    public int getLastDiceRoll() {
+        return lastDiceRoll; // Renvoie le dernier résultat du dé
+    }
+
+    public String getLastAttackMessage() {
+        return lastAttackMessage; // Renvoie le dernier message d'attaque
     }
 }

@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.security.MessageDigest;
 
+
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -36,23 +37,31 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
+        // Check if the passwords match
+        if (!password.equals(repeatPassword)) {
+            request.setAttribute("error", "Les mots de passe ne correspondent pas.");
+            request.getRequestDispatcher("connexion.jsp").forward(request, response);
+            return;
+        }
+
         // Hash the password
         String hashedPassword = hashPassword(password);
 
-        User newUser = new User(login, hashedPassword);
+        User newUser = new User(login, password);
         UserBDD utable = new UserBDD();
 
         try {
             // Check if the user already exists
             if (utable.checkUserExists(login)) {
-                request.setAttribute("error", "Le login est déjà utilisé. Veuillez choisir un autre login.");
+                request.setAttribute("error", "Le login est deja utilis�. Veuillez choisir un autre login.");
                 request.getRequestDispatcher("connexion.jsp").forward(request, response);
                 return;
             }
 
             // Assign an image to the new user
-            String soldierImage = assignSoldierImage(login);
-            newUser.setSoldierImage(soldierImage);
+            String soldierImage = assignSoldierImage(login); 
+            newUser.setSoldierImage(soldierImage); 
+
 
             // Add the new user
             if (utable.addUser(newUser)) {
@@ -82,7 +91,7 @@ public class RegisterServlet extends HttpServlet {
         }
     }
 
-    // Method to hash a password using SHA-256
+ // Method to hash a password using SHA-256
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -101,15 +110,18 @@ public class RegisterServlet extends HttpServlet {
         }
     }
 
+    //test
     private String assignSoldierImage(String username) {
         int hash = username.hashCode();
-        int index = Math.abs(hash % 4);
+        int index = Math.abs(hash % 4); // Limite a 5 images ou couleurs
         String[] images = {
             "images/soldats/soldat_bleu.jpg",
             "images/soldats/soldat_vert.jpg",
             "images/soldats/soldat_rouge.jpg",
             "images/soldats/soldat_violet.jpg"
+
         };
         return images[index];
     }
+
 }

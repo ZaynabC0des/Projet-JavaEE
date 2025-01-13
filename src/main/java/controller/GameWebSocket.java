@@ -7,7 +7,7 @@ import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.*;
@@ -31,15 +31,50 @@ public class GameWebSocket {
 
     // On stocke tous les joueurs connectés
     public static final Map<Session, PlayerInfo> players = new ConcurrentHashMap<>();
-    public static PlayerInfo playerTour=null;
+    public static List<String> playersOrder = new ArrayList<>();
+
+    public static int currentPlayerIndex = 0;
+
+    public static void nextTurn() {
+        currentPlayerIndex = (currentPlayerIndex + 1) % playersOrder.size();
+    }
+
+    private static PlayerInfo getPlayerbyusername(String username){
+        for (PlayerInfo player : players.values()) {
+            System.out.println(player.username);
+            System.out.println(username);
+            if (player.username.equals(username)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    // Map qui associe chaque playerId à un Timer
+    private static Map<String, java.util.Timer> disconnectTimers = new ConcurrentHashMap<>();
+
+    // Délai en millisecondes (p. ex. 5 secondes)
+    private static final long GRACE_PERIOD_MS = 3000;
+
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username, @PathParam("code") String code) {
+        if (disconnectTimers.containsKey(username)) {
+
+            System.out.println("[WebSocket] Annulation du départ pour " + username);
+
+            // Annuler le Timer
+            disconnectTimers.get(username).cancel();
+            disconnectTimers.remove(username);
+        }
+
         PlayerInfo player = new PlayerInfo(username, 0,code);
         players.put(session, player);
-        if(playerTour==null){
-            playerTour=player;
+        if(!playersOrder.contains(player.username)){
+            playersOrder.add(player.username);
         }
+
+
         System.out.println("[WebSocket] Nouveau joueur : " + username);
 
         broadcastPlayerJoined(player);
@@ -49,12 +84,33 @@ public class GameWebSocket {
     @OnClose
     public void onClose(Session session) {
         PlayerInfo leavingPlayer = players.remove(session);
-        //if (playerTour.username.equals(leavingPlayer.username)) {
-           // playerTour = players.values().stream().filter(p -> (!p.username.equals(leavingPlayer.username) &&(p.code.equals(leavingPlayer.code)))).findFirst().get();
-        //}
+
         if (leavingPlayer != null) {
-            System.out.println("[WebSocket] Joueur déconnecté : " + leavingPlayer.username);
-            broadcastPlayerLeft(leavingPlayer);
+            String playerId = leavingPlayer.username; // ou leavingPlayer.token
+            System.out.println("[WebSocket] Fermeture de la session : " + playerId);
+
+            // Créer un TimerTask qui déclenchera "playerLeft" au bout de 5s
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    // S’il est dans ce timer après 3s,
+                    // c’est qu’il ne s’est pas reconnecté
+                    System.out.println("[WebSocket] Joueur vraiment parti : " + playerId);
+                    playersOrder.remove(leavingPlayer.username);
+                    nextTurn();
+                    broadcastPlayerLeft(leavingPlayer);
+
+                    // Supprimer le timer de la map
+                    disconnectTimers.remove(playerId);
+                }
+            };
+
+            // Créer un Timer (on pourrait réutiliser un ThreadPool, etc.)
+            java.util.Timer timer = new java.util.Timer();
+            timer.schedule(task, GRACE_PERIOD_MS);
+
+            // Stocker ce timer pour éventuellement l’annuler s’il se reconnecte avant
+            disconnectTimers.put(playerId, timer);
         }
     }
 
@@ -62,21 +118,13 @@ public class GameWebSocket {
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
         System.out.println("[WebSocket] Message reçu : " + message);
-
+        System.out.println(playersOrder);
         JSONObject json = new JSONObject(message);
         String type = (String) json.get("type");
         PlayerInfo player = players.get(session);
         switch (type) {
             case "move":
-                if(players.size()!=1) {
-                    if (playerTour.username.equals(player.username)) {
-                        playerTour = players.values().stream().filter(p -> (!p.username.equals(player.username) &&(p.code.equals(player.code)))).findFirst().get();
-                    } else {
-                        return;
-                    }
-                }else{
-                    playerTour=player;
-                }
+                nextTurn();
 
                 broadcastSoldierMoved(player, json.getInt("soldatId"));
                 break;
@@ -101,8 +149,9 @@ public class GameWebSocket {
     }
 
     public static void respondTour(Session session) throws IOException {
+
         String json = String.format(
-                "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playerTour.username,playerTour.code
+                "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playersOrder.get(currentPlayerIndex), getPlayerbyusername(playersOrder.get(currentPlayerIndex)).code
         );
         session.getBasicRemote().sendText(json);
     }
@@ -175,7 +224,7 @@ public class GameWebSocket {
                 }
             }
             else{
-                players.remove(session);
+
                 System.out.println("Session fermée");
             }
         });

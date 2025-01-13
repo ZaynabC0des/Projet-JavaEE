@@ -4,7 +4,6 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    background-color: #000;
     padding: 10px;
 }
 
@@ -18,23 +17,44 @@ h1 {
     color:  rgb(0, 255, 255);
     font-family: 'Press Start 2P', monospace;
 }
-
+.footer {
+    margin-top: auto; /* Pousse le contenu vers le bas */
+    display: flex;
+    justify-content: center; /* Centre horizontalement */
+    align-items: center; /* Centre verticalement */
+}
 .logout-button {
-    padding: 5px 20px;
+    padding: 10px 20px;
     font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
     cursor: pointer;
-    background-color: #333;
+    background: linear-gradient(90deg, #333, #555); /* Dégradé subtil */
     color: #fff;
-    border: none;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7); /* Effet lumineux sur le texte */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Ombre lumineuse autour du bouton */
+    transition: all 0.3s ease-in-out; /* Transition fluide pour les effets */
 }
 
 .logout-button:hover {
-    background-color:  rgb(0, 255, 255);
+    background: linear-gradient(90deg, rgb(0, 255, 255), rgb(0, 255, 255)); /* Dégradé cyan-bleu */
     color: #000;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 1); /* Intensifie l'effet lumineux */
+    box-shadow: 0 0 20px rgba(0, 255, 255, 1), 0 0 30px rgba(0, 255, 255, 0.7); /* Plus de glow au survol */
+}
+
+.logout-button:active {
+    transform: scale(0.95); /* Rétrécit légèrement lors du clic */
+    background: linear-gradient(90deg, #005555, #003333); /* Foncé pendant le clic */
+    box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.7); /* Effet d'enfoncement */
 }
 
 body {
-    background-color: #000;
+	background-image: url('../images/fond_foret2.jpg'); 
+    background-size: cover;
+    background-position: center; 
+    background-repeat: no-repeat;  
     color:  rgb(0, 255, 255);
     font-family: 'Press Start 2P', monospace;
     display: flex;
@@ -65,7 +85,9 @@ img {
 }
 
 
-
+h2{
+	text-align: center;
+}
 
 
 /* Ajout de CSS pour le bouton deconnexion */
@@ -89,7 +111,7 @@ img {
     margin: 15% auto; /* Centr� verticalement et horizontalement */
     padding: 20px;
     border-radius: 20px; /* Coins arrondis pour la pop-up */
-    width: 80%; /* Largeur ajust�e */
+    width: 50%; /* Largeur ajust�e */
     box-shadow: 
         0 0 10px rgb(0, 255, 255), /* Premi�re couche n�on */
         0 0 20px rgb(0, 255, 255), /* Seconde couche plus grande */
@@ -172,11 +194,21 @@ img {
     transition: all 0.3s ease-in-out; /* Animation douce pour les interactions */
 }
 
-.button-container .custom-button:hover {
+.recruit-button .button-container .custom-button:hover {
     background-color: #555; /* Assombrir le bouton au survol */
     color: #ccc; /* Claircir le texte au survol */
 }
-
+.recruit-button{
+	padding: 5px 15px; /* Taille du bouton */
+    font-family: 'PixelGame', 'Press Start 2P', monospace; /* Police de caract�res */
+    font-size: 10px; /* Taille de la police */
+    cursor: pointer; /* Curseur en forme de pointeur pour indiquer l'interactivit� */
+    color: #333; /* Couleur du texte */
+    background-color: rgb(0, 255, 255); /* Couleur de fond du bouton */
+    border: 2px solid #fff; /* Bordure blanche */
+    border-radius: 10px; /* Coins arrondis */
+    transition: all 0.3s ease-in-out; /* Animation douce pour les interactions */
+}
 /* Effet au survol */
 .movement-controls button:hover {
     background-color: rgb(0, 255, 255); /* Fond cyan au survol */
@@ -192,8 +224,8 @@ img {
 
 .combat-container {
     position: fixed;
-    right: 20px;
-    top: 20px;
+    left: 20px;
+    top: 100px;
     width: 400px;
     background-color: rgba(0,255,255, 0.1);
     color: rgb(0, 255, 255);
@@ -224,14 +256,6 @@ img {
     align-items: start; /* Alignement vertical au d�but */
 }
 
-.player-profile {
-    width: 200px; /* Largeur fixe du panneau de profil */
-    flex-shrink: 0; /* Emp�che le r�tr�cissement du panneau */
-    border: 1px solid #ccc; /* Bordure pour le panneau de profil */
-    padding: 10px; /* Padding interne */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Ombre subtile */
-}
-
 .game-map {
     flex-grow: 1; /* Permet � la carte de remplir l'espace restant */
 }
@@ -259,11 +283,15 @@ img {
 
 /* Profil joueur caché par défaut */
 .player-profile {
+	display: flex;
+    flex-direction: column; /* Arrange les éléments verticalement */
+    justify-content: space-between; 
     position: fixed;
     right: -500px; /* Initialement hors de l'écran */
     bottom: 80px; /* Aligner verticalement avec le bouton */
-    width: 400px;
-    background-color: rgba(0, 255, 255, 0.1);
+    width: 380px;
+    height: 500px;
+    background-color: rgba(0, 0, 0, 0.5);
     border: 2px solid rgb(0, 255, 255);
     padding: 20px;
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
@@ -283,4 +311,72 @@ img {
     margin-bottom: 10px;
 }
 
+.score-container {
+    position: fixed; /* Fixe le conteneur à l'écran */
+    top: 20px; /* Distance depuis le haut */
+    right: 20px; /* Distance depuis la gauche */
+    width: 200px;
+    background-color: rgba(0, 255, 255, 0.1);
+    color: rgb(0, 255, 255);
+    font-family: 'Press Start 2P', monospace;
+    padding: 15px;
+    border: 2px solid rgb(0, 255, 255);
+    box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.7);
+    border-radius: 10px;
+    text-align: center;
+    z-index: 100; /* Assurez-vous qu'il est au-dessus des autres éléments */
+}
 
+.score-container h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.score-container p {
+    margin: 0;
+    font-size: 16px;
+    text-align: center;
+}
+
+/* Conteneur pour l'image du soldat */
+.soldier-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    border: 2px solid rgb(0, 255, 255);
+    padding: 10px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, rgba(0, 255, 255, 0.2), rgba(0, 255, 255, 0.05));
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+}
+
+/* Style pour l'image du soldat */
+.soldier-image {
+    width: 80px;
+    height: 80px;
+    animation: soldier-glow 2s infinite alternate;
+}
+
+/* Animation pour donner un effet de glow à l'image */
+@keyframes soldier-glow {
+    from {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+        transform: scale(1);
+    }
+    to {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+        transform: scale(1.1);
+    }
+}
+#timer-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: rgb(0, 255, 255);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: 'Press Start 2P', monospace;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}

@@ -4,8 +4,11 @@
 }
 
 body {
-     background-color: #000; /* Fond noir */
-     color: rgb(0, 255, 255); /* Vert de style terminal */
+	background-image: url('../images/fond_soldats.jpg'); 
+    background-size: cover;
+    background-position: center; 
+    background-repeat: no-repeat; 
+    color: rgb(0, 255, 255); /* Vert de style terminal */
      font-family: 'Press Start 2P', monospace; /* Police pixelis�e */
      margin: 0;
      padding: 0;
@@ -66,7 +69,7 @@ button:active {
     margin: 15% auto; /* Centr� verticalement et horizontalement */
     padding: 20px;
     border-radius: 20px; /* Coins arrondis pour la pop-up */
-    width: 80%; /* Largeur ajust�e */
+    width: 30%; /* Largeur ajust�e */
     box-shadow: 
         0 0 10px rgb(0, 255, 255), /* Premi�re couche n�on */
         0 0 20px rgb(0, 255, 255), /* Seconde couche plus grande */
@@ -78,6 +81,13 @@ button:active {
 .container, .imgcontainer {
     padding: 10px;
     color: rgb(0, 255, 255);
+    
+}
+
+.container_erreur {
+	padding: 10px;
+    color: rgb(255, 0, 0);
+	
 }
 
 .input, input[type='text'], input[type='password'] {
