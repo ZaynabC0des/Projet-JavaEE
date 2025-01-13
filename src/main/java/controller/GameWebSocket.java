@@ -1,6 +1,7 @@
 package controller;
 
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
@@ -59,6 +60,8 @@ public class GameWebSocket {
         return null;
     }
 
+
+
     // Map qui associe chaque playerId à un Timer
     private static Map<String, java.util.Timer> disconnectTimers = new ConcurrentHashMap<>();
 
@@ -68,6 +71,8 @@ public class GameWebSocket {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username, @PathParam("code") String code) {
+
+
         if (disconnectTimers.containsKey(username)) {
 
             System.out.println("[WebSocket] Annulation du départ pour " + username);
@@ -135,7 +140,6 @@ public class GameWebSocket {
         switch (type) {
             case "move":
                 nextTurn();
-
                 broadcastSoldierMoved(player, json.getInt("soldatId"));
                 break;
             case "combatVille":
@@ -144,9 +148,9 @@ public class GameWebSocket {
             case "combatSoldat":
                 broadcastCombatSoldat(player,json.getInt("idSoldat"),json.getInt("SoldatId"));
                 break;
-            case "destroyForest":
-                broadcastDestroyForest(player,json.getInt("idForet"),json.getInt("soldatId"));
-                break;
+            //case "destroyForest":
+                //broadcastDestroyForest(player,json.getInt("x"),json.getInt("y"),json.getInt("soldatId"));
+                //break;
             case "askTour":
                 respondTour(session);
                 break;
@@ -166,12 +170,14 @@ public class GameWebSocket {
         session.getBasicRemote().sendText(json);
     }
 
-    public static void broadcastDestroyForest(PlayerInfo player, int soldatId,int idForet){
+    public static void broadcastDestroyForest(String username,String code, int x, int y, int soldatId){
+
         String json = String.format(
-                "{\"type\":\"destroyForest\",\"username\":\"%s\",\"soldatId\":%d,\"foretId\":%d,\"code\":\"%s\"}",
-                player.username, soldatId,idForet,player.code
+                "{\"type\":\"destroyForest\",\"username\":\"%s\",\"soldatId\":%d,\"x\":%d,\"y\":%d,\"code\":\"%s\"}",
+                username, soldatId,x,y,code
         );
         broadcastMessage(json);
+
     }
 
     public static void broadcastCombatVille(PlayerInfo player,int soldatId, int idVille){
@@ -233,10 +239,7 @@ public class GameWebSocket {
                     e.printStackTrace();
                 }
             }
-            else{
 
-                System.out.println("Session fermée");
-            }
         });
     }
 }

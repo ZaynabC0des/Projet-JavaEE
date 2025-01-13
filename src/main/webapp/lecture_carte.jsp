@@ -20,6 +20,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.sql.SQLException" %>
 <%@ page import="model.VilleBDD" %>
+<%@ page import="jakarta.websocket.Session" %>
 
 <%@ page session="true" %>
 
@@ -48,7 +49,7 @@
 
     function initWebSocket() {
 
-        let url = "ws://localhost:8080/projet_war_exploded/game/" + myUsername+"/"+code;
+        let url = "ws:/192.168.220.171:8080/projet_war_exploded/game/" + myUsername+"/"+code;
         ws = new WebSocket(url);
         ws.onopen = function() {
             ws.send("{\"type\":\"askTour\",\"username\":\""+myUsername+"\"}");
@@ -99,6 +100,18 @@
                 } else {
                     soldatBlocked=true;
                 }
+                break;
+            case "destroyForest":
+                fetch('DestroyForestServlet?x=' + data.x + '&y=' + data.y)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log(data.message);
+                            // Recharger la page ou mettre à jour l'interface
+                            location.reload();
+                        }
+                    })
+                    .catch(error => console.error(error));
                 break;
             default:
                 console.warn("Type de message inconnu :", data.type);
