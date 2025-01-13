@@ -99,9 +99,6 @@ public class MoveSoldatServlet extends HttpServlet {
 
                     if (success) {
 
-                        grille[soldat.getX()][soldat.getY()] = 0; // Libérer l'ancienne position
-                        grille[newX][newY] = soldatId; // Occuper la nouvelle position
-                        session.setAttribute("grille", grille);
 
                         // Signaler qu'un popup doit être affiché								//code ajouté
                         session.setAttribute("showForestPopup", true);
@@ -146,7 +143,6 @@ public class MoveSoldatServlet extends HttpServlet {
                     }
 
                     if (request.getParameter("attaquer") == null) {
-                    	System.out.println("aezrty");
                         Random random = (Random) session.getAttribute("random");
                         if (random == null) {
                             random = new Random();
@@ -181,9 +177,6 @@ public class MoveSoldatServlet extends HttpServlet {
 
 boolean success = soldatBDD.updatePosition(soldatId, newX, newY);
 if (success) {
-    grille[soldat.getX()][soldat.getY()] = 0;
-    grille[newX][newY] = soldatId;
-    session.setAttribute("grille", grille);
     response.getWriter().write("{\"success\": true}");
 } else {
     response.getWriter().write("{\"success\": false, \"message\": \"Erreur de mise à jour en base.\"}");

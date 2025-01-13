@@ -28,8 +28,8 @@ public class RecruitSoldierServlet extends HttpServlet {
         String userLogin = (String) session.getAttribute("userLogin");
 
 
-        if(!GameWebSocket.playersOrder.get(currentPlayerIndex).username.equals(userLogin)){
-            System.out.println("Erreur : Ce n'est pas le tour de ce joueur."+GameWebSocket.playersOrder.get(currentPlayerIndex).username);
+        if(!GameWebSocket.playersOrder.get(currentPlayerIndex).equals(userLogin)){
+            System.out.println("Erreur : Ce n'est pas le tour de ce joueur."+GameWebSocket.playersOrder.get(currentPlayerIndex));
             response.sendRedirect("lecture_carte.jsp");
             return;
         }

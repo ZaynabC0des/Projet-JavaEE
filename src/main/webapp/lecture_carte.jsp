@@ -176,17 +176,6 @@
     <% session.removeAttribute("resetTimer"); %>;
 </script>
 <div id="timer-container">Temps restant : 05:00</div>
-    <div class="button-container">
-        <form action="RecruitSoldierServlet" method="POST">
-            <button type="submit" class="custom-button">Recruter un soldat</button>
-        </form>
-    </div>
-
-
-    <div class="button-container">
-    <button onclick="healSelectedSoldier()" class="custom-button">Soigner le Soldat Sélectionné</button>
-</div>
-
 
    <script>
    function healSelectedSoldier() {
@@ -499,8 +488,12 @@ if (request.getParameter("attaquer") != null) {
         <div>
             <form action="RecruitSoldierServlet" method="POST">
                 <button type="submit" id="recruitSoldier" class="recruit-button">Recruter un soldat</button>
+
             </form>
         </div>
+          <div>
+              <button onclick="healSelectedSoldier()" class="recruit-button">Soigner le Soldat Sélectionné</button>
+          </div>
     <%
         }
     %>
