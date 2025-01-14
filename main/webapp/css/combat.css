@@ -1,0 +1,74 @@
+
+/* Style des boutons d'action liés au combat */
+.combat-action-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: rgb(0, 255, 255); /* Vert */
+    color: black;
+    border: none;
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.combat-action-button:hover {
+    background-color: rgb(0, 181, 181); /* Vert légèrement plus foncé */
+}
+
+/* Style des résultats de combat */
+.result {
+    margin-top: 20px;
+    color: rgb(0, 255, 255);
+    font-size: 14px;
+}
+
+.result img {
+    width: 50px;
+    height: 50px;
+    margin: 10px auto;
+    display: block;
+    margin-top: 10px;
+ animation: rollDice 1s ease;
+}
+
+@keyframes rollDice {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+}
+/* Style du conteneur de la barre de progression */
+.progress-bar {
+    background: linear-gradient(90deg, #333, #555); /* Dégradé pour le fond */
+    border: 2px solid cyan; /* Bordure cyan */
+    height: 25px; /* Hauteur de la barre */
+    width: 100%; /* Largeur fixe */
+    border-radius: 15px; /* Coins très arrondis */
+    overflow: hidden; /* Cache les débordements de l'intérieur */
+    box-shadow: 0 4px 10px rgba(0, 255, 255, 0.4); /* Ombre externe cyan */
+    margin-top: 10px; /* Espacement avec les autres éléments */
+    position: relative; /* Nécessaire pour ajouter une pseudo-ombre interne */
+}
+
+/* Ombre interne pour l'effet de profondeur */
+.progress-bar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5); /* Ombre interne */
+}
+
+/* Barre intérieure dynamique */
+.progress-bar-inner {
+    background: linear-gradient(90deg, #00ff99, #00ccff); /* Dégradé du vert au bleu */
+    height: 100%; /* Remplit toute la hauteur */
+    border-radius: 15px; /* Coins arrondis pour s'adapter au conteneur */
+    transition: width 0.3s ease; /* Transition fluide pour la largeur */
+    box-shadow: 0 4px 6px rgba(0, 255, 255, 0.6); /* Ombre externe lumineuse */
+}
+
+
