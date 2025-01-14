@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.security.MessageDigest;
+import java.util.List;
 
 
 @WebServlet("/RegisterServlet")
@@ -113,16 +114,37 @@ public class RegisterServlet extends HttpServlet {
 
     //test
     private String assignSoldierImage(String username) {
-        int hash = username.hashCode();
-        int index = Math.abs(hash % 4); // Limite � 5 images ou couleurs
         String[] images = {
-            "images/soldats/soldat_bleu.jpg",
-            "images/soldats/soldat_vert.jpg",
-            "images/soldats/soldat_rouge.jpg",
-            "images/soldats/soldat_violet.jpg"
+                "images/soldats/soldat_bleu.jpg",
+                "images/soldats/soldat_vert.jpg",
+                "images/soldats/soldat_rouge.jpg",
+                "images/soldats/soldat_violet.jpg",
+                "images/soldats/soldat_rose.jpg",
+                "images/soldats/soldat_jaune.jpg"
 
         };
-        return images[index];
+
+        try {
+            // Obtenir les images déjà utilisées
+            UserBDD userBDD = new UserBDD();
+            List<String> usedImages = userBDD.getUsedSoldierImages();
+
+            // Rechercher une image non utilisée
+            for (String image : images) {
+                if (!usedImages.contains(image)) {
+                    return image; // Retourne la première image disponible
+                }
+            }
+
+            // Si toutes les images sont utilisées, attribuer une image par défaut
+            System.out.println("Toutes les images sont déjà attribuées. Attribution par défaut.");
+            return "images/soldats/soldat_gris.jpg";
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // En cas d'erreur, attribuer une image par défaut
+            return "images/soldats/soldat_gris.jpg";
+        }
     }
 
 }
