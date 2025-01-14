@@ -93,7 +93,7 @@ public class RegisterServlet extends HttpServlet {
     }
 
  // Method to hash a password using SHA-256
-    private String hashPassword(String password) {
+    static String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(password.getBytes());

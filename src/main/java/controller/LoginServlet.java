@@ -31,7 +31,7 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String login = request.getParameter("login");
         String password = request.getParameter("password");
-        User u1 = new User(login, password);
+        User u1 = new User(login, RegisterServlet.hashPassword(password));
         UserBDD utable = new UserBDD();
       
         try {

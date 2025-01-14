@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserBDD {
 	
@@ -261,7 +263,20 @@ public class UserBDD {
         return null; // Aucun joueur trouvé
     }
 
-
+	public List<String> getUsedSoldierImages() throws SQLException {
+		List<String> usedImages = new ArrayList<>();
+		String sql = "SELECT DISTINCT soldierImage FROM user WHERE soldierImage IS NOT NULL";
+		try (Connection conn = init();
+			 PreparedStatement stmt = conn.prepareStatement(sql);
+			 ResultSet rs = stmt.executeQuery())
+		{
+			while (rs.next())
+			{
+				usedImages.add(rs.getString("soldierImage"));
+			}
+		}
+		return usedImages;
+	}
 
 
 
