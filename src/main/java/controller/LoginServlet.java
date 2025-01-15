@@ -7,16 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
 import model.UserBDD;
-import model.VilleBDD;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+
 
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -38,7 +31,7 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String login = request.getParameter("login");
         String password = request.getParameter("password");
-        User u1 = new User(login, password);
+        User u1 = new User(login, RegisterServlet.hashPassword(password));
         UserBDD utable = new UserBDD();
       
         try {
@@ -47,27 +40,28 @@ public class LoginServlet extends HttpServlet {
                 // Stocke l'objet User et son login dans la session
                 session.setAttribute("user", foundUser);
                 session.setAttribute("userLogin", foundUser.getLogin());
-
-                System.out.println("Utilisateur trouv� : " + foundUser.getLogin());
+                int score = utable.getUserScore(foundUser.getLogin());
+                session.setAttribute("score", score);
+                System.out.println("Utilisateur trouve : " + foundUser.getLogin());
                 // Récupérer les données supplémentaires de l'utilisateur
                 User userDetails = utable.getUserDetails(foundUser.getLogin());
                 if (userDetails != null) {
-                    session.setAttribute("productionPoints", userDetails.getPointProduction());
-                
-                 // R�cup�rer et stocker l'image du soldat dans la session
+                	  session.setAttribute("productionPoints", userDetails.getPointProduction());
+                      session.setAttribute("nombreVilles", utable.compterVillesPossedeesParUtilisateur(foundUser.getLogin()));
+                 // Recuperer et stocker l'image du soldat dans la session
                     session.setAttribute("soldierImage", userDetails.getSoldierImage());
                 
                 }
-                response.sendRedirect("session.jsp");
+                response.sendRedirect("./views/session.jsp");
             } else {
                 request.setAttribute("error", "Identifiants incorrects ou utilisateur non trouv�.");
-                request.getRequestDispatcher("connexion.jsp").forward(request, response);
+                request.getRequestDispatcher("./views/connexion.jsp").forward(request, response);
             }
         } catch (SQLException e) {
             e.printStackTrace();
             response.getWriter().println("Erreur de connexion � la base de donn�es : " + e.getMessage());
             if (e.getErrorCode() == 0) {
-                System.out.println("Pas connect� � la BDD");
+                System.out.println("Pas connecté à la BDD");
             }
         }
     }

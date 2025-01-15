@@ -1,5 +1,6 @@
 
 package model;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -42,9 +43,24 @@ public class GameSession {
         return sessions.containsKey(code);
     }
 
-
     public static void generateRandomMap(String code) throws IOException {
-        String filePath = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv" + code + ".csv";
+        String filePath = "H:\\Documents\\eclipse-workspace-eya\\mardi_soir\\src\\main\\webapp\\csv\\" + code + ".csv";
+        String DefaultPath = "H:\\Documents\\eclipse-workspace-eya\\mardi_soir\\src\\main\\webapp\\csv\\default.csv";
+        try (FileWriter writer = new FileWriter(filePath); FileReader defaultReader = new FileReader(DefaultPath)) {
+            //mettre la valeur de default.csv dans le fichier de la partie
+            int c;
+            while ((c = defaultReader.read()) != -1) {
+                writer.write(c);
+            }
+        }
+
+
+    }
+}
+
+/*
+    public static void generateRandomMap(String code) throws IOException {
+        String filePath = "H:\\Documents\\ProgWeb\\Projet-JavaEE\\projet\\src\\main\\webapp\\csv\\" + code + ".csv";
         int maxMountains = 8; // Nombre maximum de montagnes
         int mountainCount = 0; // Compteur pour les montagnes
 
@@ -76,4 +92,6 @@ public class GameSession {
             }
         }
     }
-}
+*/
+
+

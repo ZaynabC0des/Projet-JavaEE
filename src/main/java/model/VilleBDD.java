@@ -42,11 +42,11 @@ public class VilleBDD {
         }
     }
 
-    // Mï¿½thode pour ajouter une ville ï¿½ la base de donnï¿½es
+    // M�thode pour ajouter une ville ï¿½ la base de donnï¿½es
     private void ajouterVilleBDD(int x, int y, int defensePoints, String login_user) throws SQLException {
         // Vï¿½rifie si la ville existe dï¿½jï¿½ pour ï¿½viter les doublons
         if (villeExiste(x, y)) {
-            System.out.println("Ville dï¿½jï¿½ existante ï¿½ la position (" + x + ", " + y + ")");
+            System.out.println("Ville d�j� existante � la position (" + x + ", " + y + ")");
             return; // Ville dï¿½jï¿½ existante, donc on ne fait rien
         }
 
@@ -77,7 +77,7 @@ public class VilleBDD {
             }
         }
     }
-    // Mï¿½thode pour rï¿½cupï¿½rer le propriï¿½taire de la ville ï¿½ une position spï¿½cifique
+    // 
     public String getCityOwner(int x, int y) throws SQLException {
         String sql = "SELECT id_user FROM ville WHERE x_position = ? AND y_position = ?";
         try (Connection conn = initConnection1();
@@ -103,7 +103,7 @@ public class VilleBDD {
             pstmt.executeUpdate();
         }
     }
-
+    
     public int getCityDefensePoints(int x, int y) throws SQLException {
         String sql = "SELECT point_defense FROM ville WHERE x_position = ? AND y_position = ?";
         try (Connection conn = initConnection1();
@@ -112,12 +112,16 @@ public class VilleBDD {
             pstmt.setInt(2, y);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("point_defense");
+                    int points = rs.getInt("point_defense");
+                    System.out.println("Points de d�fense r�cup�r�s pour la ville (" + x + ", " + y + ") : " + points);
+                    return points;
                 }
             }
         }
-        return 0; // Retourne 0 si aucun point de dï¿½fense n'est trouvï¿½
+        System.out.println("Aucune ville trouv�e � la position (" + x + ", " + y + ").");
+        return 0; // Retourne 0 si aucune ville n'existe � cette position
     }
+
 
 
     public void updateCityOwner(int x, int y, String newOwnerLogin) throws SQLException {
@@ -128,15 +132,16 @@ public class VilleBDD {
             pstmt.setInt(3, y);
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("Le propriÃ©taire de la ville a Ã©tÃ© mis Ã  jour avec succÃ¨s.");
+                System.out.println("Le propri�taire de la ville a �t� mis � jour avec succ�s.");
             } else {
-                System.out.println("Aucune ville n'a Ã©tÃ© mise Ã  jour.");
+                System.out.println("Aucune ville n'a �t� mise � jour.");
             }
         } catch (SQLException e) {
-            System.out.println("Erreur lors de la mise Ã  jour du propriÃ©taire de la ville : " + e.getMessage());
+            System.out.println("Erreur lors de la mise � jour du propri�taire de la ville : " + e.getMessage());
             throw e;
         }
     }
+
 
     public void updateDefensePoints(int x, int y, int newDefensePoints) throws SQLException {
         String query = "UPDATE ville SET point_defense = ? WHERE x_position = ? AND y_position = ?";
@@ -145,9 +150,20 @@ public class VilleBDD {
             stmt.setInt(1, newDefensePoints);
             stmt.setInt(2, x);
             stmt.setInt(3, y);
-            stmt.executeUpdate();
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Mise � jour r�ussie pour la ville (" + x + ", " + y + ") avec " + newDefensePoints + " points de d�fense.");
+            } else {
+                System.out.println("Aucune ville n'a �t� mise � jour pour (" + x + ", " + y + ").");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la mise � jour des points de d�fense pour (" + x + ", " + y + ") : " + e.getMessage());
+            throw e;
         }
     }
+
+    
     public void updateDefensePointsAndOwner(int x, int y, int newDefensePoints, String attackerLogin) throws SQLException {
         String query = "UPDATE ville SET point_defense = ?, id_user = CASE WHEN ? = 0 THEN ? ELSE id_user END WHERE x_position = ? AND y_position = ?";
         try (Connection conn = initConnection1();
