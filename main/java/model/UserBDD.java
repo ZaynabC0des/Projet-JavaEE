@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserBDD {
 	
@@ -233,19 +235,53 @@ public class UserBDD {
         return 0; 
     }
 
-	public void updateScore(String login, int newScore) throws SQLException {
-		String sql = "UPDATE user SET score = ? WHERE login = ?";
-		try (Connection cnx = this.init();
-			 PreparedStatement stmt = cnx.prepareStatement(sql)) {
-			stmt.setInt(1, newScore);
-			stmt.setString(2, login);
-			int rowsUpdated = stmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw e;
+    public void updateScore(String login, int additionalScore) throws SQLException {
+        String sql = "UPDATE user SET score = score + ? WHERE login = ?";
+        try (Connection cnx = this.init();
+             PreparedStatement stmt = cnx.prepareStatement(sql)) {
+            stmt.setInt(1, additionalScore);
+            stmt.setString(2, login);
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                System.out.println("No user found with login: " + login);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
+    public String getTopPlayer() throws SQLException {
+        String query = "SELECT login FROM user ORDER BY point_production DESC LIMIT 1";
+        try (Connection conn = this.init();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("login"); // Assurez-vous que le nom de la colonne correspond
+            }
+        }
+        return null; // Aucun joueur trouvé
+    }
+    
+    public List<String> getUsedSoldierImages() throws SQLException {
+		List<String> usedImages = new ArrayList<>();
+		String sql = "SELECT DISTINCT soldierImage FROM user WHERE soldierImage IS NOT NULL";
+		try (Connection conn = init();
+			 PreparedStatement stmt = conn.prepareStatement(sql);
+			 ResultSet rs = stmt.executeQuery())
+		{
+			while (rs.next())
+			{
+				usedImages.add(rs.getString("soldierImage"));
+			}
 		}
+		return usedImages;
 	}
 
+
+	
+
+	
     
 
 

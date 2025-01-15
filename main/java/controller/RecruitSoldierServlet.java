@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.SoldatBDD;
-import model.User;
 import model.UserBDD;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -26,10 +25,10 @@ public class RecruitSoldierServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	response.setContentType("application/json");
     	response.setCharacterEncoding("UTF-8");
+    	
     	HttpSession session = request.getSession();
         String userLogin = (String) session.getAttribute("userLogin");
-        
-        
+
         if (GameWebSocket.playersOrder.isEmpty() || currentPlayerIndex >= GameWebSocket.playersOrder.size()) {
             System.out.println("Erreur : Aucun joueur dans la liste ou index invalide.");
             response.getWriter().write("{\"success\": false, \"message\": \"Aucun joueur dans la liste ou index invalide.\"}");
@@ -84,15 +83,15 @@ public class RecruitSoldierServlet extends HttpServlet {
 
                 if (emptyPositions.isEmpty()) {
                     System.out.println("Erreur : Aucune case vide disponible pour positionner un soldat.");
-                    response.getWriter().write("{\"success\": false, \"message\": \"Aucune case vide disponible pour positionner un soldat.\"}");
+                    response.sendRedirect("../views/lecture_carte.jsp");
                     return;
                 }
                 Integer x=null;
                 Integer y=null;
                 for (int[] emptyPosition : emptyPositions) {
                     if (soldatBDD.existeSoldatPosition(emptyPosition[0], emptyPosition[1],(String)session.getAttribute("code"))) {
-                        System.out.println("Erreur : Une autre entité occupe déjà la position (" + emptyPosition[0] + ", " + emptyPosition[1] + ").");
-
+                    	 response.getWriter().write("{\"success\": false, \"message\": \"Aucune case vide disponible pour positionner un soldat.\"}");
+                    	 
                     } else {
                         x = emptyPosition[0];
                         y = emptyPosition[1];
@@ -139,8 +138,9 @@ public class RecruitSoldierServlet extends HttpServlet {
                 }
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            response.getWriter().write("{\"success\": false, \"message\": \"Erreur de base de données.\"}");
+        	 e.printStackTrace();
+             response.getWriter().write("{\"success\": false, \"message\": \"Erreur de base de données.\"}");
+            
         }
     }
 }

@@ -45,7 +45,7 @@ public class Carte {
                         int pointsDeVie = Integer.parseInt(tileData[2]);
 
                     } else {
-                        map[x][y] = Tuile.createTuile(x, y, tType, "", 0); // Utiliser des valeurs par défaut pour login et points de vie
+                        map[x][y] = Tuile.createTuile(x, y, tType, "", 0); // Utiliser des valeurs par dï¿½faut pour login et points de vie
                     }
                 }
             }

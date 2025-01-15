@@ -9,12 +9,10 @@ import jakarta.servlet.http.HttpSession;
 import model.*;
 import model.SoldatBDD;
 import model.UserBDD;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +21,10 @@ import java.util.Random;
 
 @WebServlet("/session")
 public class SessionServlet extends HttpServlet {
-    @Override
+    private static final long serialVersionUID = 1L;
+
+
+	@Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
 
@@ -38,11 +39,11 @@ public class SessionServlet extends HttpServlet {
                 GameSession.generateRandomMap(code);
                 message =  code;
             } catch (IOException e) {
-                message= "Session créée avec le code : " + code + ", mais erreur lors de la génération de la map.";
+                message= "Session créée avec le code : " + code + ", mais erreur lors de la generation de la map.";
             }
             request.setAttribute("code", code);
             request.setAttribute("message", message);
-            request.getRequestDispatcher("/session.jsp").forward(request, response);
+            request.getRequestDispatcher("./views/session.jsp").forward(request, response);
 
         } else if ("join".equals(action)) {
             // Rejoindre une session existante
@@ -56,18 +57,13 @@ public class SessionServlet extends HttpServlet {
             // Chemin vers le dossier et le fichier CSV de l'utilisateur
 
 
-            if (new File("C:\\Users\\CYTech Student\\eclipse-workspace-NewJEE\\projetJEE\\src\\main\\webapp\\csv\\" + code + ".csv").exists()) {
-                String gameFilePath = "C:\\Users\\CYTech Student\\eclipse-workspace-NewJEE\\projetJEE\\src\\main\\webapp\\csv\\" + code + ".csv";
+            if (new File("H:\\Documents\\eclipse-workspace-eya\\mardi_soir\\src\\main\\webapp\\csv\\" + code + ".csv").exists()) {
+                String gameFilePath = "H:\\Documents\\eclipse-workspace-eya\\mardi_soir\\src\\main\\webapp\\csv\\" + code + ".csv";
                 session.setAttribute("gameFilePath", gameFilePath);
 
                 try {
                     // 1) Initialiser la grille
                     int[][] grille = initializeGrid(gameFilePath);
-                    if (grille == null) {
-                        System.out.println("Erreur : Grille non initialisée.");
-                        response.sendRedirect("lecture_carte.jsp");
-                        return;
-                    }
                     session.setAttribute("grille", grille);
 
                     // 2) Initialiser les villes dans la base de donn�es
@@ -77,6 +73,13 @@ public class SessionServlet extends HttpServlet {
                     UserBDD userBDD = new UserBDD();
                     SoldatBDD soldatBDD = new SoldatBDD();
                     String userLogin = (String) session.getAttribute("userLogin");
+
+
+                    if (grille == null) {
+                        System.out.println("Erreur : Grille non initialisée.");
+                        response.sendRedirect("./views/lecture_carte.jsp");
+                        return;
+                    }
 
                     if (userBDD.compterSoldatsPossedesParUtilisateur(userLogin, (String) session.getAttribute("code")) == 0) {
 
@@ -94,7 +97,7 @@ public class SessionServlet extends HttpServlet {
 
                         if (emptyPositions.isEmpty()) {
                             System.out.println("Erreur : Aucune case vide disponible pour positionner un soldat.");
-                            response.sendRedirect("lecture_carte.jsp");
+                            response.sendRedirect("./views/lecture_carte.jsp");
                             return;
                         }
                         Integer x = null;
@@ -111,7 +114,7 @@ public class SessionServlet extends HttpServlet {
                         }
                         if (x == null || y == null) {
                             System.out.println("Erreur : Aucune case vide disponible pour positionner un soldat.");
-                            response.sendRedirect("lecture_carte.jsp");
+                            response.sendRedirect("./views/lecture_carte.jsp");
                             return;
                         }
                         int soldatId = soldatBDD.ajouterSoldatEtRecupererId(userLogin, 100, x, y, (String) session.getAttribute("code"));
@@ -139,22 +142,25 @@ public class SessionServlet extends HttpServlet {
                         }
 
                     }
-                    response.sendRedirect("lecture_carte.jsp");
+                    response.sendRedirect("./views/lecture_carte.jsp");
 
                 } catch (IOException e) {
                     System.out.println("Erreur lors de l'initialisation de la grille : " + e.getMessage());
                     request.setAttribute("error",
                             "Erreur lors de l'initialisation de la carte : " + e.getMessage());
-                    request.getRequestDispatcher("connexion.jsp").forward(request, response);
+                    request.getRequestDispatcher("./views/connexion.jsp").forward(request, response);
                 } catch (SQLException e) {
                     System.out.println("Erreur lors de l'initialisation des villes dans la BDD : "
                             + e.getMessage());
                     request.setAttribute("error",
                             "Erreur lors de l'initialisation des villes dans la BDD : " + e.getMessage());
-                    request.getRequestDispatcher("connexion.jsp").forward(request, response);
+                    request.getRequestDispatcher("./views/connexion.jsp").forward(request, response);
                 }
             } else{
-                    response.getWriter().write("Code de session invalide !");
+            	String message_erreur = "Code de session invalide !";
+            	 request.setAttribute("message_erreur", message_erreur);
+            	 System.out.println("okok");
+            	 request.getRequestDispatcher("./views/session.jsp").forward(request, response);
                 }
             }else {
                 response.getWriter().write("Action invalide !");

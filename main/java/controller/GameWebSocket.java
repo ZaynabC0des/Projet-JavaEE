@@ -45,7 +45,7 @@ public class GameWebSocket {
         } while (getPlayerbyusername(playersOrder.get(currentPlayerIndex)) == null
                 && !playersOrder.isEmpty());
 
-        // Diffuser le tour actuel après le changement
+        // Diffuser le tour actuel apr�s le changement
         broadcastCurrentTurn();
     }
 
@@ -94,7 +94,7 @@ public class GameWebSocket {
 
     @OnClose
     public void onClose(Session session) {
-        PlayerInfo leavingPlayer = players.get(session);
+        PlayerInfo leavingPlayer = players.remove(session);
 
         if (leavingPlayer != null) {
             String playerId = leavingPlayer.username; // ou leavingPlayer.token
@@ -107,7 +107,6 @@ public class GameWebSocket {
                     // S’il est dans ce timer après 3s,
                     // c’est qu’il ne s’est pas reconnecté
                     System.out.println("[WebSocket] Joueur vraiment parti : " + playerId);
-                    players.remove(session);
                     playersOrder.remove(leavingPlayer.username);
                     nextTurn();
                     broadcastPlayerLeft(leavingPlayer);
@@ -125,15 +124,6 @@ public class GameWebSocket {
             disconnectTimers.put(playerId, timer);
         }
     }
-    @OnError
-    public void onError(Session session, Throwable throwable) {
-        System.err.println("[WebSocket] Erreur détectée : " + throwable.getMessage());
-        if (session != null) {
-            System.err.println("[WebSocket] Session concernée : " + session.getId());
-        }
-        throwable.printStackTrace();
-    }
-
 
 
     @OnMessage
@@ -173,11 +163,11 @@ public class GameWebSocket {
 
         String json = String.format(
                 "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playersOrder.get(currentPlayerIndex), getPlayerbyusername(playersOrder.get(currentPlayerIndex)).code
-               // "{\"type\":\"respondTour\",\"username\":\"%s\",\"code\":\"%s\"}",playersOrder.get(currentPlayerIndex).username,playersOrder.get(currentPlayerIndex).code
-                );
+        );
         session.getBasicRemote().sendText(json);
     }
     
+
     public static void broadcastCurrentTurn() {
         String json = String.format(
             "{\"type\":\"currentTurn\",\"username\":\"%s\",\"code\":\"%s\"}",
@@ -232,7 +222,6 @@ public class GameWebSocket {
         );
         broadcastMessage(json);
     }
-    
 
     public static void broadcastSoldierMoved(PlayerInfo player, int soldatId) {
         String json = String.format(

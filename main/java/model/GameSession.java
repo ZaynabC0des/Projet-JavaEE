@@ -44,8 +44,8 @@ public class GameSession {
     }
 
     public static void generateRandomMap(String code) throws IOException {
-        String filePath = "C:\\Users\\CYTech Student\\eclipse-workspace-NewJEE\\projetJEE\\src\\main\\webapp\\csv\\" + code + ".csv";
-        String DefaultPath = "C:\\Users\\CYTech Student\\eclipse-workspace-NewJEE\\projetJEE\\src\\main\\webapp\\csv\\default.csv";
+        String filePath = "H:\\Documents\\eclipse-workspace-eya\\mardi_soir\\src\\main\\webapp\\csv\\" + code + ".csv";
+        String DefaultPath = "H:\\Documents\\eclipse-workspace-eya\\mardi_soir\\src\\main\\webapp\\csv\\default.csv";
         try (FileWriter writer = new FileWriter(filePath); FileReader defaultReader = new FileReader(DefaultPath)) {
             //mettre la valeur de default.csv dans le fichier de la partie
             int c;

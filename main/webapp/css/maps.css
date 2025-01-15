@@ -381,25 +381,26 @@ h2{
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
+
 .temp-message {
-    position: fixed; /* Message positionnÃ© par rapport Ã  la fenÃªtre */
-    top: 20%; /* Distance depuis le haut de l'Ã©cran (20% de la hauteur) */
-    left: 50%; /* CentrÃ© horizontalement */
-    transform: translateX(-50%); /* Centre rÃ©ellement l'Ã©lÃ©ment en soustrayant la moitiÃ© de sa largeur */
+    position: fixed; /* Message positionné par rapport à la fenêtre */
+    top: 20%; /* Distance depuis le haut de l'écran (20% de la hauteur) */
+    left: 50%; /* Centré horizontalement */
+    transform: translateX(-50%); /* Centre réellement l'élément en soustrayant la moitié de sa largeur */
     background-color: rgba(0, 255, 255, 0.9); /* Fond cyan semi-transparent */
     color: #000; /* Texte noir pour un bon contraste */
     padding: 10px 20px; /* Espacement interne */
     border-radius: 10px; /* Coins arrondis */
-    font-family: 'Press Start 2P', monospace; /* Police cohÃ©rente avec le thÃ¨me */
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Effet nÃ©on */
-    opacity: 1; /* Message visible par dÃ©faut */
+    font-family: 'Press Start 2P', monospace; /* Police cohérente avec le thème */
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Effet néon */
+    opacity: 1; /* Message visible par défaut */
     transition: opacity 1s ease-out, transform 1s ease-out; /* Transition fluide */
     z-index: 1000; /* S'assure que le message est au-dessus de tout */
 }
 
 .temp-message.hide {
-    opacity: 0; /* DisparaÃ®t progressivement */
-    transform: translateY(20px); /* Glisse lÃ©gÃ¨rement vers le bas */
+    opacity: 0; /* Disparaît progressivement */
+    transform: translateY(20px); /* Glisse légèrement vers le bas */
 }
 
 
